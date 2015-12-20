@@ -1,0 +1,31 @@
+Cloud Warfare
+=================
+
+Blobs fight each other in a 2-D (3-D world) platformer.
+
+Blobs can:
+
+(1) Suck/blow/cannon each other. possibly gain/lose powers
+(2) "Spike" one another downwards
+(3) Fly in little upward bursts
+(4) Turn into a hard rock (?)
+(5) Kicks, punches, combos, etc.
+
+The environment will consist of:
+
+(1) Flat and diagonal platforms
+(2) Clouds that act as temporary platforms
+(3) Items to use against each other (bumper, shell)
+
+Other ideas:
+
+(*) Controller support
+(*) Local multiplayer
+(*) Varied and customizable control scheme
+(*) Customizable blobs
+
+
+Game Plan
+=============
+
+Get a demo with some basic physics up, see if Arjun is interested.
