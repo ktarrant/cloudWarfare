@@ -15,15 +15,18 @@ import com.badlogic.gdx.physics.box2d.*;
 
 import java.util.ArrayList;
 
-public class MainGdxGame extends ApplicationAdapter implements GestureDetector.GestureListener {
+public class MainGdxGame extends ApplicationAdapter {
     private static final int VELOCITY_ITERATIONS = 6;
     private static final int POSITION_ITERATIONS = 2;
     private static final float TIME_STEP = 1 / 60.0f;
     private static final float MAP_WIDTH = 50.0f;
-    private static final float VIEW_WIDTH = 50.0f;
+    private static final float MAP_HEIGHT = 50.0f;
+    private static final float MAP_KILL_MARGIN = 50.0f;
+    private static final float MIN_VIEW_WIDTH = 25.0f;
+    private static final Vector2 START_POS = new Vector2(0.0f, 10.0f);
 
-    ArrayList<PlayerManager.TestPlayer> playerList;
-    PlayerManager.TestPlayer curPlayer;
+    ArrayList<Player> playerList;
+    Player curPlayer;
 
     SpriteBatch batch;
     Texture img;
@@ -44,19 +47,34 @@ public class MainGdxGame extends ApplicationAdapter implements GestureDetector.G
         debugRenderer = new Box2DDebugRenderer();
         debugRenderer.setDrawBodies(true);
 
-        // Create some demo objects to play with
-        testWorld = WorldManager.createDemoWorld(MAP_WIDTH);
-        playerList = new ArrayList<PlayerManager.TestPlayer>();
-        curPlayer = PlayerManager.addDemoPlayerToWorld(testWorld, MAP_WIDTH);
-        playerList.add(curPlayer);
-
         // Set up the camera view
         camera = new OrthographicCamera();
-        camera.setToOrtho(true, MAP_WIDTH, MAP_WIDTH * Gdx.graphics.getHeight() / Gdx.graphics.getWidth());
-        // camera.setToOrtho(true, Gdx.graphics.getWidth() * 0.1f, Gdx.graphics.getHeight() * 0.1f);
+        camera.setToOrtho(false, MIN_VIEW_WIDTH,
+                MIN_VIEW_WIDTH * Gdx.graphics.getHeight() / Gdx.graphics.getWidth());
+
+        // Create some demo objects to play with
+        testWorld = WorldManager.createDemoWorld(MAP_WIDTH);
+        playerList = new ArrayList<Player>();
+        curPlayer = new Player(testWorld.world, camera, START_POS);
+        playerList.add(curPlayer);
 
         // Set up the control processing
-        Gdx.input.setInputProcessor(new GestureDetector(this));
+        Gdx.input.setInputProcessor(new GestureDetector(curPlayer));
+    }
+
+    private void checkBounds() {
+        for (Player player : playerList) {
+            Vector2 pos = player.getPlayerBody().getPosition();
+            if ((pos.x < ((-MAP_WIDTH / 2.0) - MAP_KILL_MARGIN)) ||
+                ((pos.x > (MAP_WIDTH / 2.0) + MAP_KILL_MARGIN)) ||
+                (pos.y < -MAP_KILL_MARGIN) || (pos.y > MAP_HEIGHT + MAP_KILL_MARGIN)) {
+
+                // Reset the player and put them back in the start position
+                player.getPlayerBody().setAngularVelocity(0.0f);
+                player.getPlayerBody().setLinearVelocity(0.0f, 0.0f);
+                player.getPlayerBody().setTransform(START_POS, 0.0f);
+            }
+        }
     }
 
     private void doPhysicsStep(float deltaTime) {
@@ -75,6 +93,9 @@ public class MainGdxGame extends ApplicationAdapter implements GestureDetector.G
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        // Check if the current player fell off the map
+        checkBounds();
+
         // Update the Box2D world
         doPhysicsStep(Gdx.graphics.getDeltaTime());
 
@@ -88,60 +109,11 @@ public class MainGdxGame extends ApplicationAdapter implements GestureDetector.G
     @Override
     public void dispose() {
         if (playerList != null) {
-            for (PlayerManager.TestPlayer testPlayer : playerList) {
-                PlayerManager.dispose(testPlayer);
+            for (Player player : playerList) {
+                player.dispose();
             }
         }
 
         WorldManager.dispose(testWorld);
-    }
-
-    @Override
-    public boolean touchDown(float x, float y, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean tap(float x, float y, int count, int button) {
-        Vector3 worldCoor = camera.unproject(new Vector3(x, y, 0.0f));
-        Vector2 playerPos = curPlayer.playerBody.getPosition();
-        float curAng = MathUtils.atan2(worldCoor.y - playerPos.y, worldCoor.x - playerPos.x);
-        curPlayer.playerBody.applyLinearImpulse(
-                curPlayer.jumpPower * MathUtils.cos(curAng),
-                curPlayer.jumpPower * MathUtils.sin(curAng),
-                curPlayer.playerBody.getPosition().x,
-                curPlayer.playerBody.getPosition().y,
-                true); // wake the player body
-        return true;
-    }
-
-    @Override
-    public boolean longPress(float x, float y) {
-        return false;
-    }
-
-    @Override
-    public boolean fling(float velocityX, float velocityY, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean pan(float x, float y, float deltaX, float deltaY) {
-        return false;
-    }
-
-    @Override
-    public boolean panStop(float x, float y, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean zoom(float initialDistance, float distance) {
-        return false;
-    }
-
-    @Override
-    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
-        return false;
     }
 }

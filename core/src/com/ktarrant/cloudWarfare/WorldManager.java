@@ -48,7 +48,7 @@ public class WorldManager {
         TestWorld rv = new TestWorld();
 
         // Create the world
-        rv.world = new World(new Vector2(0, 10.0f), true);
+        rv.world = new World(new Vector2(0, -10.0f), true);
 
         addDemoPlatformsToWorld(rv, width);
 
