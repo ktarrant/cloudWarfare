@@ -2,14 +2,18 @@ package com.ktarrant.cloudWarfare;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.input.GestureDetector;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.*;
 
-public class MainGdxGame extends ApplicationAdapter {
+public class MainGdxGame extends ApplicationAdapter implements GestureDetector.GestureListener {
     private static final int VELOCITY_ITERATIONS = 6;
     private static final int POSITION_ITERATIONS = 2;
     private static final float TIME_STEP = 1 / 60.0f;
@@ -34,6 +38,8 @@ public class MainGdxGame extends ApplicationAdapter {
         camera = new OrthographicCamera();
         camera.setToOrtho(true, MAP_WIDTH, MAP_WIDTH * Gdx.graphics.getHeight() / Gdx.graphics.getWidth());
         // camera.setToOrtho(true, Gdx.graphics.getWidth() * 0.1f, Gdx.graphics.getHeight() * 0.1f);
+
+        Gdx.input.setInputProcessor(new GestureDetector(this));
     }
 
     private void doPhysicsStep(float deltaTime) {
@@ -64,5 +70,52 @@ public class MainGdxGame extends ApplicationAdapter {
     @Override
     public void dispose() {
         WorldManager.dispose(testWorld);
+    }
+
+    @Override
+    public boolean touchDown(float x, float y, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean tap(float x, float y, int count, int button) {
+        Vector3 worldCoor = camera.unproject(new Vector3(x, y, 0.0f));
+        Vector2 playerPos = testWorld.playerBody.getPosition();
+        float curAng = MathUtils.atan2(worldCoor.y - playerPos.y, worldCoor.x - playerPos.x);
+        testWorld.playerBody.applyForceToCenter(
+                testWorld.jumpPower * MathUtils.cos(curAng),
+                testWorld.jumpPower * MathUtils.sin(curAng),
+                true); // wake the player body
+        return true;
+    }
+
+    @Override
+    public boolean longPress(float x, float y) {
+        return false;
+    }
+
+    @Override
+    public boolean fling(float velocityX, float velocityY, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean pan(float x, float y, float deltaX, float deltaY) {
+        return false;
+    }
+
+    @Override
+    public boolean panStop(float x, float y, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean zoom(float initialDistance, float distance) {
+        return false;
+    }
+
+    @Override
+    public boolean pinch(Vector2 initialPointer1, Vector2 initialPointer2, Vector2 pointer1, Vector2 pointer2) {
+        return false;
     }
 }

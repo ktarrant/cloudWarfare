@@ -18,6 +18,8 @@ import com.badlogic.gdx.physics.box2d.World;
 public class WorldManager {
 
     public static class TestWorld {
+        public float jumpPower = 100.0f;
+
         public World world = null;
 
         public BodyDef playerBodyDef = null;
