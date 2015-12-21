@@ -29,3 +29,33 @@ Game Plan
 =============
 
 Get a demo with some basic physics up, see if Arjun is interested.
+
+How extensive should the demo be?
+
+I'm thinking a sigle simple map. There will be some platform variations:
+
+(1) Stationary Flat Platform
+
+(2) Moving Flat Platform
+
+(3) Stationary Diagonal Platform
+
+(4) Temporary Flat Platform
+
+Have a little pop-up menu that lets you play with the physics. Be able to change:
+
+(1) Gravity
+
+(2) Density
+
+(3) Friction
+
+(4) Bounce
+
+(5) Jump Power
+
+Have a couple hotkeys that let you play around. Hot keys for:
+
+(1) Create item
+
+(2) Create enemy
