@@ -2,16 +2,14 @@ package com.ktarrant.cloudWarfare;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.input.GestureDetector;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.*;
+import com.ktarrant.cloudWarfare.player.Player;
 
 import java.util.ArrayList;
 
@@ -44,8 +42,6 @@ public class MainGdxGame extends ApplicationAdapter {
 
         // Set up Box2D
         Box2D.init();
-        debugRenderer = new Box2DDebugRenderer();
-        debugRenderer.setDrawBodies(true);
 
         // Set up the camera view
         camera = new OrthographicCamera();
@@ -57,6 +53,16 @@ public class MainGdxGame extends ApplicationAdapter {
         playerList = new ArrayList<Player>();
         curPlayer = new Player(testWorld.world, camera, START_POS);
         playerList.add(curPlayer);
+
+        // Create a renderer that annotates the objects
+        debugRenderer = new Box2DDebugRenderer(
+                true, 	// boolean drawBodies
+                true, 	// boolean drawJoints
+                false, 	// boolean drawAABBs
+                true, 	// boolean drawInactiveBodies
+                true, 	// boolean drawVelocities
+                true  	// boolean drawContacts
+        );
 
         // Set up the control processing
         Gdx.input.setInputProcessor(new GestureDetector(curPlayer));
@@ -100,7 +106,7 @@ public class MainGdxGame extends ApplicationAdapter {
         doPhysicsStep(Gdx.graphics.getDeltaTime());
 
         if (playerList != null && playerList.size() > 0) {
-            camera.position.set(curPlayer.playerBody.getPosition(), 0);
+            camera.position.set(curPlayer.getPlayerBody().getPosition(), 0);
             camera.update();
         }
         debugRenderer.render(testWorld.world, camera.combined);
