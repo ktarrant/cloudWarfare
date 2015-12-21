@@ -18,48 +18,12 @@ import com.badlogic.gdx.physics.box2d.World;
 public class WorldManager {
 
     public static class TestWorld {
-        public float jumpPower = 100.0f;
-
         public World world = null;
-
-        public BodyDef playerBodyDef = null;
-        public Body playerBody = null;
-        public CircleShape playerCircleShape = null;
-        public FixtureDef playerFixtureDef = null;
-        public Fixture playerFixture = null;
 
         public BodyDef groundBodyDef = null;
         public Body groundBody = null;
         public PolygonShape groundBox = null;
         public Fixture groundFixture = null;
-    }
-
-    public static void addDemoPlayerToWorld(TestWorld testWorld, float stageWidth) {
-        // First we create a body definition
-        testWorld.playerBodyDef = new BodyDef();
-        // We set our body to dynamic, for something like ground which doesn't move we would set it to StaticBody
-        testWorld.playerBodyDef.type = BodyDef.BodyType.DynamicBody;
-        // Set our body's starting position in the world
-        testWorld.playerBodyDef.position.set(
-                stageWidth * 0.5f,
-                -5.0f);
-
-        // Create a circle shape and set its radius to 6
-        testWorld.playerCircleShape = new CircleShape();
-        testWorld.playerCircleShape.setRadius(0.6f);
-
-        // Create a fixture definition to apply our shape to
-        testWorld.playerFixtureDef = new FixtureDef();
-        testWorld.playerFixtureDef.shape = testWorld.playerCircleShape;
-        testWorld.playerFixtureDef.density = 0.5f;
-        testWorld.playerFixtureDef.friction = 0.1f;
-        // testWorld.playerFixtureDef.restitution = 0.6f; // Make it bounce a little bit
-
-        // Create our body in the world using our body definition
-        testWorld.playerBody = testWorld.world.createBody(testWorld.playerBodyDef);
-
-        // Create our fixture and attach it to the body
-        testWorld.playerFixture = testWorld.playerBody.createFixture(testWorld.playerFixtureDef);
     }
 
     public static void addDemoPlatformsToWorld(TestWorld testWorld, float stageWidth) {
@@ -86,18 +50,12 @@ public class WorldManager {
         // Create the world
         rv.world = new World(new Vector2(0, 10.0f), true);
 
-
-        addDemoPlayerToWorld(rv, width);
         addDemoPlatformsToWorld(rv, width);
 
         return rv;
     }
 
     public static void dispose(TestWorld testWorld) {
-        // Remember to dispose of any shapes after you're done with them!
-        // BodyDef and FixtureDef don't need disposing, but shapes do.
-        testWorld.playerCircleShape.dispose();
-
         // Clean up after ourselves
         testWorld.groundBox.dispose();
     }

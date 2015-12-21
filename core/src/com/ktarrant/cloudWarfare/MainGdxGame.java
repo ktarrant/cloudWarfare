@@ -13,12 +13,17 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.*;
 
+import java.util.ArrayList;
+
 public class MainGdxGame extends ApplicationAdapter implements GestureDetector.GestureListener {
     private static final int VELOCITY_ITERATIONS = 6;
     private static final int POSITION_ITERATIONS = 2;
     private static final float TIME_STEP = 1 / 60.0f;
     private static final float MAP_WIDTH = 50.0f;
     private static final float VIEW_WIDTH = 50.0f;
+
+    ArrayList<PlayerManager.TestPlayer> playerList;
+    PlayerManager.TestPlayer curPlayer;
 
     SpriteBatch batch;
     Texture img;
@@ -29,16 +34,28 @@ public class MainGdxGame extends ApplicationAdapter implements GestureDetector.G
 
     @Override
     public void create() {
+
+        // Old stuff TODO: Get rid of this
         batch = new SpriteBatch();
         img = new Texture("badlogic.jpg");
+
+        // Set up Box2D
         Box2D.init();
         debugRenderer = new Box2DDebugRenderer();
         debugRenderer.setDrawBodies(true);
+
+        // Create some demo objects to play with
         testWorld = WorldManager.createDemoWorld(MAP_WIDTH);
+        playerList = new ArrayList<PlayerManager.TestPlayer>();
+        curPlayer = PlayerManager.addDemoPlayerToWorld(testWorld, MAP_WIDTH);
+        playerList.add(curPlayer);
+
+        // Set up the camera view
         camera = new OrthographicCamera();
         camera.setToOrtho(true, MAP_WIDTH, MAP_WIDTH * Gdx.graphics.getHeight() / Gdx.graphics.getWidth());
         // camera.setToOrtho(true, Gdx.graphics.getWidth() * 0.1f, Gdx.graphics.getHeight() * 0.1f);
 
+        // Set up the control processing
         Gdx.input.setInputProcessor(new GestureDetector(this));
     }
 
@@ -61,14 +78,21 @@ public class MainGdxGame extends ApplicationAdapter implements GestureDetector.G
         // Update the Box2D world
         doPhysicsStep(Gdx.graphics.getDeltaTime());
 
-        camera.position.set(testWorld.playerBody.getPosition(), 0);
-        camera.update();
-
+        if (playerList != null && playerList.size() > 0) {
+            camera.position.set(curPlayer.playerBody.getPosition(), 0);
+            camera.update();
+        }
         debugRenderer.render(testWorld.world, camera.combined);
     }
 
     @Override
     public void dispose() {
+        if (playerList != null) {
+            for (PlayerManager.TestPlayer testPlayer : playerList) {
+                PlayerManager.dispose(testPlayer);
+            }
+        }
+
         WorldManager.dispose(testWorld);
     }
 
@@ -80,11 +104,13 @@ public class MainGdxGame extends ApplicationAdapter implements GestureDetector.G
     @Override
     public boolean tap(float x, float y, int count, int button) {
         Vector3 worldCoor = camera.unproject(new Vector3(x, y, 0.0f));
-        Vector2 playerPos = testWorld.playerBody.getPosition();
+        Vector2 playerPos = curPlayer.playerBody.getPosition();
         float curAng = MathUtils.atan2(worldCoor.y - playerPos.y, worldCoor.x - playerPos.x);
-        testWorld.playerBody.applyForceToCenter(
-                testWorld.jumpPower * MathUtils.cos(curAng),
-                testWorld.jumpPower * MathUtils.sin(curAng),
+        curPlayer.playerBody.applyLinearImpulse(
+                curPlayer.jumpPower * MathUtils.cos(curAng),
+                curPlayer.jumpPower * MathUtils.sin(curAng),
+                curPlayer.playerBody.getPosition().x,
+                curPlayer.playerBody.getPosition().y,
                 true); // wake the player body
         return true;
     }
