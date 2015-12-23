@@ -2,6 +2,7 @@ package com.ktarrant.cloudWarfare;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -10,6 +11,7 @@ import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.ktarrant.cloudWarfare.player.Player;
+import com.ktarrant.cloudWarfare.player.PlayerRenderer;
 
 import java.util.ArrayList;
 
@@ -32,6 +34,7 @@ public class MainGdxGame extends ApplicationAdapter {
     float accumulator = 0;
     Box2DDebugRenderer debugRenderer;
     OrthographicCamera camera;
+    PlayerRenderer playerRenderer;
 
     @Override
     public void create() {
@@ -63,6 +66,9 @@ public class MainGdxGame extends ApplicationAdapter {
                 true, 	// boolean drawVelocities
                 true  	// boolean drawContacts
         );
+
+        // Create a renderer that draws the current player
+        playerRenderer = new PlayerRenderer();
 
         // Set up the control processing
         Gdx.input.setInputProcessor(new GestureDetector(curPlayer));
@@ -109,6 +115,12 @@ public class MainGdxGame extends ApplicationAdapter {
             camera.position.set(curPlayer.getPlayerBody().getPosition(), 0);
             camera.update();
         }
+
+        playerRenderer.setProjectionMatrix(camera.combined);
+        playerRenderer.begin();
+        playerRenderer.drawPlayerControlHelp(curPlayer);
+        playerRenderer.end();
+
         debugRenderer.render(testWorld.world, camera.combined);
     }
 

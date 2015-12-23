@@ -22,8 +22,9 @@ import java.util.ArrayList;
  * Created by ktarrant1 on 12/20/15.
  */
 public class Player implements GestureDetector.GestureListener, ContactListener {
-    public final float playerBodyRadius = 0.6f; // TODO: Make player size configurable
-    public final float runAngleCosine = 0.7f;
+    public final static float defaultControlDeadZone = MathUtils.PI / 6.0f;
+    public final static float runPower = 1.0f;
+    public final static float playerBodyRadius = 0.6f; // TODO: Make player size configurable
 
     protected OrthographicCamera camera;
     protected BodyDef playerBodyDef = null;
@@ -36,16 +37,24 @@ public class Player implements GestureDetector.GestureListener, ContactListener 
     protected ArrayList<Body> contactBodies;
 
     public enum PlayerState {
-        AIR_ACTIVE(1.0f, 'A'),
-        AIR_PUFF(1.0f, 'P'),
-        FOOT_ACTIVE(2.0f, 'F');
+        AIR_ACTIVE(1.0f, 0, defaultControlDeadZone, 'A'),
+        AIR_PUFF(1.0f, 0, defaultControlDeadZone, 'P'),
+        FOOT_ACTIVE(2.0f, defaultControlDeadZone, defaultControlDeadZone, 'F');
 
         public final float jumpPower;
+        public float horizDeadZoneCos;
+        public float vertDeadZoneCos;
+        public float horizDeadZoneAng;
+        public float vertDeadZoneAng;
         public final char stateIcon;
 
-        private PlayerState(float jumpPower, char stateIcon) {
+        private PlayerState(float jumpPower, float horizDeadZoneAng, float vertDeadZoneAng, char stateIcon) {
             this.jumpPower = jumpPower;
             this.stateIcon = stateIcon;
+            this.horizDeadZoneAng = horizDeadZoneAng;
+            this.vertDeadZoneAng = vertDeadZoneAng;
+            this.horizDeadZoneCos = MathUtils.cos(horizDeadZoneAng / 2.0f);
+            this.vertDeadZoneCos = MathUtils.cos(vertDeadZoneAng / 2.0f);
         }
     }
 
@@ -115,6 +124,25 @@ public class Player implements GestureDetector.GestureListener, ContactListener 
         state = newState;
     }
 
+    private void clampImpulse(Vector2 impulse) {
+        if (this.state.horizDeadZoneCos > 0) {
+            if (impulse.x > this.state.horizDeadZoneCos) {
+                impulse.set(1.0f, 0.0f);
+            }
+            if (impulse.x < -this.state.horizDeadZoneCos) {
+                impulse.set(-1.0f, 0.0f);
+            }
+        }
+        if (this.state.vertDeadZoneCos > 0) {
+            if (impulse.y > this.state.vertDeadZoneCos) {
+                impulse.set(0.0f, 1.0f);
+            }
+            if (impulse.y < -this.state.vertDeadZoneCos) {
+                impulse.set(0.0f, -1.0f);
+            }
+        }
+    }
+
     public PlayerState getState() {
         return state;
     }
@@ -130,7 +158,7 @@ public class Player implements GestureDetector.GestureListener, ContactListener 
         Vector2 playerPos = this.playerBody.getPosition();
         Vector2 cursorVec = new Vector2(worldCoor.x - playerPos.x, worldCoor.y - playerPos.y);
         float curAng = MathUtils.atan2(cursorVec.y, cursorVec.x);
-
+        Vector2 impulse = new Vector2(MathUtils.cos(curAng), MathUtils.sin(curAng));
         switch (this.state) {
             case AIR_ACTIVE:
             case AIR_PUFF:
@@ -139,23 +167,21 @@ public class Player implements GestureDetector.GestureListener, ContactListener 
                 } else { // Dodging to the side or diving down
                     setState(PlayerState.AIR_ACTIVE);
                 }
+                break;
             case FOOT_ACTIVE:
-                Vector2 impulse = new Vector2(MathUtils.cos(curAng), MathUtils.sin(curAng));
-                if (impulse.x >= runAngleCosine) {
-                    impulse.set(1.0f, 0.0f);
-                } else if (impulse.x < -runAngleCosine) {
-                    impulse.set(-1.0f, 0.0f);
-                }
                 this.playerBody.setTransform(this.playerBody.getPosition(), (impulse.x > 0) ? 0.0f : MathUtils.PI);
 
-                this.playerBody.applyLinearImpulse(
-                        impulse.scl(this.state.jumpPower),
-                        this.playerBody.getPosition(),
-                        true); // wake the player body
-                return true;
+                break;
             default:
                 return false;
         }
+
+        clampImpulse(impulse);
+        this.playerBody.applyLinearImpulse(
+                impulse.scl(this.state.jumpPower),
+                this.playerBody.getPosition(),
+                true); // wake the player body
+        return true;
     }
 
     @Override
