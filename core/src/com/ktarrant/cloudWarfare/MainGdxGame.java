@@ -13,6 +13,7 @@ import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.ktarrant.cloudWarfare.player.Player;
+import com.ktarrant.cloudWarfare.player.PlayerManager;
 import com.ktarrant.cloudWarfare.player.PlayerRenderer;
 
 import org.jrenner.smartfont.SmartFontGenerator;
@@ -27,7 +28,6 @@ public class MainGdxGame extends ApplicationAdapter {
     private static final float MAP_HEIGHT = 50.0f;
     private static final float MAP_KILL_MARGIN = 50.0f;
     private static final float MIN_VIEW_WIDTH = 25.0f;
-    private static final Vector2 START_POS = new Vector2(0.0f, 10.0f);
 
     ArrayList<Player> playerList;
     Player curPlayer;
@@ -38,6 +38,7 @@ public class MainGdxGame extends ApplicationAdapter {
     float accumulator = 0;
     Box2DDebugRenderer debugRenderer;
     OrthographicCamera camera;
+    PlayerManager playerManager;
     PlayerRenderer playerRenderer;
 
     @Override
@@ -57,9 +58,10 @@ public class MainGdxGame extends ApplicationAdapter {
 
         // Create some demo objects to play with
         testWorld = WorldManager.createDemoWorld(MAP_WIDTH);
-        playerList = new ArrayList<Player>();
-        curPlayer = new Player(testWorld.world, camera, START_POS);
-        playerList.add(curPlayer);
+
+        // Add a player
+        playerManager = new PlayerManager(testWorld.world, camera);
+        playerManager.addMainPlayer();
 
         // Create a renderer that annotates the objects
         debugRenderer = new Box2DDebugRenderer(
@@ -80,22 +82,7 @@ public class MainGdxGame extends ApplicationAdapter {
         playerRenderer = new PlayerRenderer(fontSmall);
 
         // Set up the control processing
-        Gdx.input.setInputProcessor(new GestureDetector(curPlayer));
-    }
-
-    private void checkBounds() {
-        for (Player player : playerList) {
-            Vector2 pos = player.getPlayerBody().getPosition();
-            if ((pos.x < ((-MAP_WIDTH / 2.0) - MAP_KILL_MARGIN)) ||
-                ((pos.x > (MAP_WIDTH / 2.0) + MAP_KILL_MARGIN)) ||
-                (pos.y < -MAP_KILL_MARGIN) || (pos.y > MAP_HEIGHT + MAP_KILL_MARGIN)) {
-
-                // Reset the player and put them back in the start position
-                player.getPlayerBody().setAngularVelocity(0.0f);
-                player.getPlayerBody().setLinearVelocity(0.0f, 0.0f);
-                player.getPlayerBody().setTransform(START_POS, 0.0f);
-            }
-        }
+        Gdx.input.setInputProcessor(new GestureDetector(playerManager));
     }
 
     private void doPhysicsStep(float deltaTime) {
@@ -115,32 +102,26 @@ public class MainGdxGame extends ApplicationAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         // Check if the current player fell off the map
-        checkBounds();
+        playerManager.checkBounds(
+                (-MAP_WIDTH / 2.0f) - MAP_KILL_MARGIN,
+                -MAP_KILL_MARGIN,
+                (MAP_WIDTH / 2.0f) + MAP_KILL_MARGIN,
+                MAP_HEIGHT + MAP_KILL_MARGIN);
 
         // Update the Box2D world
         doPhysicsStep(Gdx.graphics.getDeltaTime());
 
-        if (playerList != null && playerList.size() > 0) {
-            camera.position.set(curPlayer.getPlayerBody().getPosition(), 0);
-            camera.update();
-        }
-
-        playerRenderer.setProjectionMatrix(camera.combined);
-        playerRenderer.begin();
-        playerRenderer.drawPlayerControlHelp(curPlayer);
-        playerRenderer.end();
-        playerRenderer.drawEnvironmentData(curPlayer);
+        // Draw the players
+        camera.position.set(playerManager.getActivePosition(), 0);
+        camera.update();
+        playerManager.draw(playerRenderer);
 
         debugRenderer.render(testWorld.world, camera.combined);
     }
 
     @Override
     public void dispose() {
-        if (playerList != null) {
-            for (Player player : playerList) {
-                player.dispose();
-            }
-        }
+        playerManager.dispose();
 
         WorldManager.dispose(testWorld);
     }

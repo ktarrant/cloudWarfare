@@ -41,7 +41,7 @@ public class PlayerRenderer extends ShapeRenderer {
     public void drawPlayerControlHelp(Player player) {
         this.set(ShapeType.Filled);
         this.setColor(0.2f, 0.2f, 0.2f, 0.1f);
-        Vector2 playerPos = player.getPlayerBody().getPosition();
+        Vector2 playerPos = player.body.getPosition();
         float arcRadius = player.playerBodyRadius * 40.0f;
         float arcAngle = player.state.horizDeadZoneAng * 180.0f / MathUtils.PI;
         float arcStart = -(arcAngle / 2.0f);
@@ -71,7 +71,7 @@ public class PlayerRenderer extends ShapeRenderer {
 
     public void drawEnvironmentData(Player player) {
         float textRad = player.playerBodyRadius * 4.0f;
-        Vector2 playerPos = player.getPlayerBody().getPosition();
+        Vector2 playerPos = player.body.getPosition();
         int i = 0;
         textBatch.begin();
         for (PlayerDataLabel label : this.envData.values()) {
