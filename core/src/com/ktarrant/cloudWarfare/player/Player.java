@@ -23,7 +23,6 @@ import java.util.ArrayList;
  */
 public class Player implements GestureDetector.GestureListener, ContactListener {
     public final static float defaultControlDeadZone = MathUtils.PI / 6.0f;
-    public final static float runPower = 1.0f;
     public final static float playerBodyRadius = 0.6f; // TODO: Make player size configurable
 
     protected OrthographicCamera camera;
@@ -37,19 +36,21 @@ public class Player implements GestureDetector.GestureListener, ContactListener 
     protected ArrayList<Body> contactBodies;
 
     public enum PlayerState {
-        AIR_ACTIVE(1.0f, 0, defaultControlDeadZone, 'A'),
-        AIR_PUFF(1.0f, 0, defaultControlDeadZone, 'P'),
-        FOOT_ACTIVE(2.0f, defaultControlDeadZone, defaultControlDeadZone, 'F');
+        AIR_ACTIVE(0.5f, 0.5f, 0, defaultControlDeadZone, 'A'),
+        AIR_PUFF(0.5f, 0.5f, 0, defaultControlDeadZone, 'P'),
+        FOOT_ACTIVE(2.0f, 0.5f, defaultControlDeadZone, defaultControlDeadZone, 'F');
 
-        public final float jumpPower;
+        public float jumpPower;
+        public float runPower;
         public float horizDeadZoneCos;
         public float vertDeadZoneCos;
         public float horizDeadZoneAng;
         public float vertDeadZoneAng;
         public final char stateIcon;
 
-        private PlayerState(float jumpPower, float horizDeadZoneAng, float vertDeadZoneAng, char stateIcon) {
+        private PlayerState(float jumpPower, float runPower, float horizDeadZoneAng, float vertDeadZoneAng, char stateIcon) {
             this.jumpPower = jumpPower;
+            this.runPower = runPower;
             this.stateIcon = stateIcon;
             this.horizDeadZoneAng = horizDeadZoneAng;
             this.vertDeadZoneAng = vertDeadZoneAng;
@@ -177,6 +178,7 @@ public class Player implements GestureDetector.GestureListener, ContactListener 
         }
 
         clampImpulse(impulse);
+
         this.playerBody.applyLinearImpulse(
                 impulse.scl(this.state.jumpPower),
                 this.playerBody.getPosition(),

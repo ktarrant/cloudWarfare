@@ -2,16 +2,20 @@ package com.ktarrant.cloudWarfare;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.ktarrant.cloudWarfare.player.Player;
 import com.ktarrant.cloudWarfare.player.PlayerRenderer;
+
+import org.jrenner.smartfont.SmartFontGenerator;
 
 import java.util.ArrayList;
 
@@ -67,8 +71,13 @@ public class MainGdxGame extends ApplicationAdapter {
                 true  	// boolean drawContacts
         );
 
+        // Create a font generator and generate a font
+        SmartFontGenerator fontGen = new SmartFontGenerator();
+        FileHandle exoFile = Gdx.files.local("open-sans/OpenSans-Regular.ttf");
+        BitmapFont fontSmall = fontGen.createFont(exoFile, "exo-small", 6);
+
         // Create a renderer that draws the current player
-        playerRenderer = new PlayerRenderer();
+        playerRenderer = new PlayerRenderer(fontSmall);
 
         // Set up the control processing
         Gdx.input.setInputProcessor(new GestureDetector(curPlayer));
@@ -120,6 +129,7 @@ public class MainGdxGame extends ApplicationAdapter {
         playerRenderer.begin();
         playerRenderer.drawPlayerControlHelp(curPlayer);
         playerRenderer.end();
+        playerRenderer.drawEnvironmentData(curPlayer);
 
         debugRenderer.render(testWorld.world, camera.combined);
     }
