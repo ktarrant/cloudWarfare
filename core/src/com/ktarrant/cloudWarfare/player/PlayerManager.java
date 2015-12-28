@@ -44,44 +44,10 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
         world.setContactListener(this);
     }
 
-    public Player addNewPlayer() {
-        Player newPlayer = new Player();
-        players.add(newPlayer);
-
-        // First we create a body definition
-        newPlayer.bodyDef = new BodyDef();
-        // We set our body to dynamic, for something like ground which doesn't move we would set it to StaticBody
-        newPlayer.bodyDef.type = BodyDef.BodyType.DynamicBody;
-        // Set our body's starting position in the world
-        newPlayer.bodyDef.position.set(startPos);
-
-        // Create a circle shape and set its radius to 6
-        newPlayer.circleShape = new CircleShape();
-        newPlayer.circleShape.setRadius(0.6f);
-
-        // Create a fixture definition to apply our shape to
-        newPlayer.fixtureDef = new FixtureDef();
-        newPlayer.fixtureDef.shape = newPlayer.circleShape;
-        newPlayer.fixtureDef.density = 0.2f;
-        newPlayer.fixtureDef.friction = 1.0f;
-        // rv.newPlayerFixtureDef.restitution = 0.6f; // Make it bounce a little bit
-
-        // Create our body in the world using our body definition
-        newPlayer.body = world.createBody(newPlayer.bodyDef);
-
-        // Create our fixture and attach it to the body
-        newPlayer.fixture = newPlayer.body.createFixture(newPlayer.fixtureDef);
-
-        // Set up the player
-        newPlayer.contactBodies = new ArrayList<Body>();
-        newPlayer.setState(Player.PlayerState.AIR_ACTIVE);
-
-        return newPlayer;
-    }
-
     public void addMainPlayer() {
-        Player mainPlayer = addNewPlayer();
-        activePlayer = mainPlayer;
+        activePlayer = PlayerFactory.createNewPlayer(world);
+        activePlayer.body.setTransform(startPos, 0.0f);
+        players.add(activePlayer);
     }
 
     public void checkBounds(float mapMinX, float mapMinY, float mapMaxX, float mapMaxY) {
@@ -149,26 +115,26 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
             default:
                 return false;
         }
-
-        if (activePlayer.state.horizDeadZoneCos > 0) {
-            if (impulse.x > activePlayer.state.horizDeadZoneCos) {
+        Player.PlayerStateAttributes attr = activePlayer.getStateAttributes();
+        if (attr.horizDeadZoneCos > 0) {
+            if (impulse.x > attr.horizDeadZoneCos) {
                 impulse.set(1.0f, 0.0f);
             }
-            if (impulse.x < -activePlayer.state.horizDeadZoneCos) {
+            if (impulse.x < -attr.horizDeadZoneCos) {
                 impulse.set(-1.0f, 0.0f);
             }
         }
-        if (activePlayer.state.vertDeadZoneCos > 0) {
-            if (impulse.y > activePlayer.state.vertDeadZoneCos) {
+        if (attr.vertDeadZoneCos > 0) {
+            if (impulse.y > attr.vertDeadZoneCos) {
                 impulse.set(0.0f, 1.0f);
             }
-            if (impulse.y < -activePlayer.state.vertDeadZoneCos) {
+            if (impulse.y < -attr.vertDeadZoneCos) {
                 impulse.set(0.0f, -1.0f);
             }
         }
 
         activePlayer.body.applyLinearImpulse(
-                impulse.scl(activePlayer.state.jumpPower),
+                impulse.scl(attr.jumpPower),
                 activePlayer.body.getPosition(),
                 true); // wake the player body
         return true;

@@ -17,13 +17,12 @@ import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 
 /**
  * Created by ktarrant1 on 12/20/15.
  */
 public class Player {
-    public final static float defaultControlDeadZone = MathUtils.PI / 6.0f;
-    public final static float playerBodyRadius = 0.6f; // TODO: Make player size configurable
 
     public BodyDef bodyDef = null;
     public Body body = null;
@@ -32,28 +31,26 @@ public class Player {
     public Fixture fixture = null;
     public PlayerState state;
     public ArrayList<Body> contactBodies;
+    public EnumMap<PlayerState, PlayerStateAttributes> stateAttributes;
 
-    public enum PlayerState {
-        AIR_ACTIVE(0.5f, 0.5f, 0, defaultControlDeadZone, 'A'),
-        AIR_PUFF(0.5f, 0.5f, 0, defaultControlDeadZone, 'P'),
-        FOOT_ACTIVE(2.0f, 0.5f, defaultControlDeadZone, defaultControlDeadZone, 'F');
-
+    public static class PlayerStateAttributes {
         public float jumpPower;
         public float runPower;
         public float horizDeadZoneCos;
         public float vertDeadZoneCos;
         public float horizDeadZoneAng;
         public float vertDeadZoneAng;
+    }
+
+    public enum PlayerState {
+        AIR_ACTIVE('A'),
+        AIR_PUFF('P'),
+        FOOT_ACTIVE('F');
+
         public final char stateIcon;
 
-        private PlayerState(float jumpPower, float runPower, float horizDeadZoneAng, float vertDeadZoneAng, char stateIcon) {
-            this.jumpPower = jumpPower;
-            this.runPower = runPower;
+        private PlayerState(char stateIcon) {
             this.stateIcon = stateIcon;
-            this.horizDeadZoneAng = horizDeadZoneAng;
-            this.vertDeadZoneAng = vertDeadZoneAng;
-            this.horizDeadZoneCos = MathUtils.cos(horizDeadZoneAng / 2.0f);
-            this.vertDeadZoneCos = MathUtils.cos(vertDeadZoneAng / 2.0f);
         }
     }
 
@@ -80,7 +77,7 @@ public class Player {
         state = newState;
     }
 
-    public PlayerState getState() {
-        return state;
+    public PlayerStateAttributes getStateAttributes() {
+        return stateAttributes.get(state);
     }
 }
