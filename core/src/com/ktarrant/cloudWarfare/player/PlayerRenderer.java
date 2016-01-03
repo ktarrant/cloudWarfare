@@ -87,6 +87,13 @@ public class PlayerRenderer extends ShapeRenderer {
         textBatch.end();
     }
 
+    public void drawPlayerState(Player player) {
+        textBatch.begin();
+        Vector2 playerPos = player.body.getPosition();
+        font.draw(textBatch, String.valueOf(player.state.stateIcon), playerPos.x, playerPos.y);
+        textBatch.end();
+    }
+
     public void setFont(BitmapFont font) {
         this.font = font;
     }

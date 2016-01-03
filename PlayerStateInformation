@@ -1,0 +1,57 @@
+PLAYER STATE MACHINE
+================================
+
+There are a number of state variables the Player has to maintain:
+
+(1) PlayerState:
+    (a) AIR_ACTIVE: In the air, and in control
+    (b) AIR_INACTIVE: In the air, not in control
+    (c) FOOT_ACTIVE: On foot, and in control
+    (d) FOOT_INACTIVE: On foot, not in control
+
+(2) Stamina: The stamina bar represents how many jumps are left,
+    or how much longer the player can run. The stamina bar is
+    replenished while the player is in FOOT_ACTIVE and idle.
+
+(3) ActionModifier: Each hold button on the screen represents a
+    different ActionModifier. When the user holds a button,
+    the Player is set with the corresponding ActionModifier. 
+    There are five ActionModifier s:
+
+    (a) NONE (no buttons are held)
+    (b) ATTACK
+    (c) SUCK
+    (d) ROCK
+    (e) SPIKE
+
+    ActionModifiers change what move a Tap performs.
+
+
+Actions
+------------
+
+When the user performs a Tap, it spawns a new Action. An Action
+has the following properties:
+
+(1) PlayerState - the state the player is in when the Tap occurs.
+(2) Direction - the direction of the tap
+(3) ActionModifier - specifies the type of action to perform
+(4) Stamina - the player's stamina at the time of the tap
+
+To figure out what the Action should do, we look up an ActionDef
+using a key. The key is basically defined by:
+
+<PlayerState>.<ActionModifer>
+
+For example, if the user holds the ATTACK button and taps while
+the Player is in the AIR_ACTIVE state, the key that is used is
+"AIR_ACTIVE.ATTACK". An ActionDef will be returned corresponding
+to that key.
+
+An ActionDef has the following properties:
+
+(1) HorizDeadZoneAngle (optional) - The horizontal dead zone angle.
+(2) UpDeadZoneAngle (optional) - The upward vertical dead zone angle.
+(3) DownDeadZoneAngle (optional) - The downward vertical dead zone angle.
+
+

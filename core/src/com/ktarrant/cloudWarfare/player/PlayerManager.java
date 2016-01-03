@@ -71,6 +71,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
             renderer.drawPlayerControlHelp(activePlayer);
             renderer.end();
             renderer.drawEnvironmentData(activePlayer);
+            renderer.drawPlayerState(activePlayer);
         }
     }
 
@@ -93,32 +94,56 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
             return false;
         }
 
+        // Compute the angles and vectors of the tap relative to the character
         Vector3 worldCoor = camera.unproject(new Vector3(x, y, 0.0f));
         Vector2 playerPos = activePlayer.body.getPosition();
         Vector2 cursorVec = new Vector2(worldCoor.x - playerPos.x, worldCoor.y - playerPos.y);
         float curAng = MathUtils.atan2(cursorVec.y, cursorVec.x);
         Vector2 impulse = new Vector2(MathUtils.cos(curAng), MathUtils.sin(curAng));
+
+        // Interpret the tap based on the current state of the character
+        Player.PlayerStateAttributes attr = activePlayer.getStateAttributes();
         switch (activePlayer.state) {
             case AIR_ACTIVE:
             case AIR_PUFF:
-                if (worldCoor.y > playerPos.y) { // Going upwards, puff up!
-                    activePlayer.setState(Player.PlayerState.AIR_PUFF);
-                } else { // Dodging to the side or diving down
-                    activePlayer.setState(Player.PlayerState.AIR_ACTIVE);
+                if (attr.vertDeadZoneCos > 0) {
+                    if (impulse.y > attr.vertDeadZoneCos) {
+                        activePlayer.setState(Player.PlayerState.AIR_PUFF);
+                        impulse.set(0.0f, activePlayer.getStateAttributes().jumpPower);
+                    } else if (impulse.y < -attr.vertDeadZoneCos) {
+                        // TODO: activePlayer.setState(Player.PlayerState.AIR_SPIKE);
+                        // TODO: impulse.set(0.0f, activePlayer.getStateAttributes().spikePower);
+                    } else {
+                        activePlayer.setState(Player.PlayerState.AIR_ACTIVE);
+                    }
                 }
                 break;
-            case FOOT_ACTIVE:
-                activePlayer.body.setTransform(activePlayer.body.getPosition(),
-                        (impulse.x > 0) ? 0.0f : MathUtils.PI);
 
-                break;
-            default:
-                return false;
+            case FOOT_WALK:
+            case FOOT_RUN:
+            case FOOT_ACTIVE:
+                if (attr.horizDeadZoneCos > 0) {
+                    if (impulse.x > attr.horizDeadZoneCos) {
+                        activePlayer.setState(Player.PlayerState.FOOT_WALK);
+                        impulse.set(activePlayer.getStateAttributes().runPower, 0.0f);
+                        activePlayer.body.setTransform(activePlayer.body.getPosition(), 0.0f);
+                    } else if (impulse.x > attr.horizDeadZoneCos) {
+                        activePlayer.setState(Player.PlayerState.FOOT_WALK);
+                        impulse.set(activePlayer.getStateAttributes().runPower, 0.0f);
+                        activePlayer.body.setTransform(activePlayer.body.getPosition(),
+                                MathUtils.PI);
+                    }
+                }
         }
-        Player.PlayerStateAttributes attr = activePlayer.getStateAttributes();
+
+        // Move the player
+        activePlayer.body.applyLinearImpulse(impulse,
+                activePlayer.body.getPosition(),
+                true);
         if (attr.horizDeadZoneCos > 0) {
             if (impulse.x > attr.horizDeadZoneCos) {
                 impulse.set(1.0f, 0.0f);
+
             }
             if (impulse.x < -attr.horizDeadZoneCos) {
                 impulse.set(-1.0f, 0.0f);
@@ -132,16 +157,30 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
                 impulse.set(0.0f, -1.0f);
             }
         }
-
-        activePlayer.body.applyLinearImpulse(
-                impulse.scl(attr.jumpPower),
-                activePlayer.body.getPosition(),
-                true); // wake the player body
+        switch (activePlayer.state) {
+            case AIR_ACTIVE:
+            case AIR_PUFF:
+                if (worldCoor.y > playerPos.y) { // Going upwards, puff up!
+                    activePlayer.setState(Player.PlayerState.AIR_PUFF);
+                } else { // Dodging to the side or diving down
+                    activePlayer.setState(Player.PlayerState.AIR_ACTIVE);
+                }
+                break;
+            case FOOT_ACTIVE:
+                activePlayer.setState(Player.PlayerState.FOOT_WALK);
+                activePlayer.body.setTransform(activePlayer.body.getPosition(),
+                        (impulse.x > 0) ? 0.0f : MathUtils.PI);
+                break;
+            case FOOT_WALK:
+            default:
+                return false;
+        }
         return true;
     }
 
     @Override
     public boolean longPress(float x, float y) {
+        System.out.println(String.format("Long press: %f, %f", x, y));
         return false;
     }
 

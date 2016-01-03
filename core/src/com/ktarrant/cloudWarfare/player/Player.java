@@ -23,6 +23,8 @@ import java.util.EnumMap;
  * Created by ktarrant1 on 12/20/15.
  */
 public class Player {
+    public static final float AIR_LINEAR_DAMPING = 0.5f;
+    public static final float AIR_ANGULAR_DAMPING = 0.5f;
 
     public BodyDef bodyDef = null;
     public Body body = null;
@@ -45,7 +47,9 @@ public class Player {
     public enum PlayerState {
         AIR_ACTIVE('A'),
         AIR_PUFF('P'),
-        FOOT_ACTIVE('F');
+        FOOT_ACTIVE('F'),
+        FOOT_WALK('W'),
+        FOOT_RUN('R');
 
         public final char stateIcon;
 
@@ -61,14 +65,22 @@ public class Player {
 
         switch (newState) {
             case FOOT_ACTIVE:
-                //TODO: What happens when we are on-foot?
+                Body floorBody = getFloorBody();
                 this.body.setFixedRotation(true);
                 this.body.setAngularVelocity(0.0f);
-                this.body.setLinearVelocity(0.0f, 0.0f);
+                this.body.setLinearDamping(getFloorBody().getLinearDamping());
+                break;
+            case FOOT_WALK:
+                // Don't need to do anything special - settings same as FOOT_ACTIVE.
+                break;
+            case FOOT_RUN:
+                this.body.setLinearDamping(0.0f);
                 break;
             case AIR_ACTIVE:
             case AIR_PUFF:
                 this.body.setFixedRotation(false);
+                this.body.setLinearDamping(AIR_LINEAR_DAMPING);
+                this.body.setAngularDamping(AIR_ANGULAR_DAMPING);
                 break;
         }
 
@@ -77,7 +89,19 @@ public class Player {
         state = newState;
     }
 
+    public void update() {
+
+    }
+
     public PlayerStateAttributes getStateAttributes() {
         return stateAttributes.get(state);
+    }
+
+    private Body getFloorBody() {
+        if (contactBodies == null || contactBodies.isEmpty()) {
+            return null;
+        } else {
+            return contactBodies.get(0);
+        }
     }
 }
