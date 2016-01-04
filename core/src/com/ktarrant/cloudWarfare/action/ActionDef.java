@@ -33,8 +33,10 @@ public class ActionDef {
      */
     public boolean isInCaptureZone(Vector2 direction) {
         float angle = direction.angleRad();
-        if ((angle >= actionStartAngle) &&
-            (angle <= actionStartAngle + actionLengthAngle)) {
+        float diff = angle - actionStartAngle;
+        if (diff < 0.0f && (diff + MathUtils.PI2 < actionLengthAngle)) {
+            return true;
+        } else if (diff > 0.0f && (diff < actionLengthAngle)) {
             return true;
         } else {
             return false;

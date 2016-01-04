@@ -14,9 +14,6 @@ import java.util.EnumMap;
  * Created by ktarrant1 on 12/27/15.
  */
 public class PlayerFactory {
-    public final static float DEFAULT_DEAD_ZONE_ANGLE = MathUtils.PI / 6.0f;
-    public static final float DEFAULT_JUMP_POWER = 0.75f;
-    public static final float DEFAULT_RUN_POWER = 0.5f;
 
     public static Player createNewPlayer(World world) {
         Player newPlayer = new Player();

@@ -21,6 +21,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.ktarrant.cloudWarfare.action.Action;
 import com.ktarrant.cloudWarfare.action.ActionDef;
+import com.ktarrant.cloudWarfare.action.ActionDefLoader;
 import com.ktarrant.cloudWarfare.action.ActionModifier;
 
 import java.util.ArrayList;
@@ -42,7 +43,8 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
 
     // TODO: Flush out Action Queue, List, Map
     protected Queue<Action> actionQueue;
-    protected ActionDef curActionDef;
+    protected ActionDefLoader actionDefLoader;
+    protected Array<ActionDef> curActionDefList;
 
     public PlayerManager(World world, Camera camera) {
         this.world = world;
@@ -54,18 +56,28 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
         world.setContactListener(this);
 
         this.actionQueue = new ArrayBlockingQueue<Action>(MAX_CONCURRENT_ACTIONS);
-        curActionDef = new ActionDef(
-                -MathUtils.PI,
-                MathUtils.PI2,
-                new Vector2(1.0f, 1.0f),
-                Vector2.Zero
-        );
+        actionDefLoader = new ActionDefLoader();
+        actionDefLoader.load();
+    }
+
+    protected void updateActionDefList() {
+        // TODO: Use configurable ActionModifier
+        if (activePlayer != null) {
+            curActionDefList = actionDefLoader.getActionDefList(
+                    ActionModifier.NORMAL,
+                    activePlayer.state);
+        } else {
+            // Create empty array to use as placeholder
+            curActionDefList = new Array<ActionDef>();
+        }
+
     }
 
     public void addMainPlayer() {
         activePlayer = PlayerFactory.createNewPlayer(world);
         activePlayer.body.setTransform(startPos, 0.0f);
         players.add(activePlayer);
+        updateActionDefList();
     }
 
     public void checkBounds(float mapMinX, float mapMinY, float mapMaxX, float mapMaxY) {
@@ -86,7 +98,10 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
         if (activePlayer != null) {
             renderer.setProjectionMatrix(camera.combined);
             renderer.begin();
-            renderer.drawPlayerControlHelp(activePlayer, curActionDef);
+
+            for (ActionDef actionDef : curActionDefList) {
+                renderer.drawPlayerControlHelp(activePlayer, actionDef);
+            }
             renderer.end();
             renderer.drawEnvironmentData(activePlayer);
             renderer.drawPlayerState(activePlayer);
@@ -131,19 +146,20 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
         Vector2 playerPos = activePlayer.body.getPosition();
         Vector2 cursorVec = new Vector2(worldCoor.x - playerPos.x, worldCoor.y - playerPos.y);
 
-        if (curActionDef.isInCaptureZone(cursorVec)) {
-            // There is an ActionDef for this Tap, create an Action from it
-            Action action = new Action(
-                    activePlayer,
-                    ActionModifier.NORMAL,
-                    curActionDef,
-                    cursorVec
-            );
+        for (ActionDef actionDef : curActionDefList) {
+            if (actionDef.isInCaptureZone(cursorVec)) {
+                // There is an ActionDef for this Tap, create an Action from it
+                Action action = new Action(
+                        activePlayer,
+                        ActionModifier.NORMAL,
+                        actionDef,
+                        cursorVec
+                );
 
-            // Add it to the ActionQueue
-            actionQueue.add(action);
-        } else {
-            System.out.println("Move not captured. Direction: " + cursorVec.toString());
+                // Add it to the ActionQueue
+                actionQueue.add(action);
+                break;
+            }
         }
         return true;
     }
@@ -188,7 +204,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
                 if (player.fixture == fixB) {
                     player.contactBodies.add(fixA.getBody());
                     player.setState(Player.PlayerState.FOOT_ACTIVE);
-                    // TODO: updateActionList();
+                    updateActionDefList();
                     return;
                 }
             }
@@ -197,7 +213,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
                 if (player.fixture == fixA) {
                     player.contactBodies.add(fixA.getBody());
                     player.setState(Player.PlayerState.FOOT_ACTIVE);
-                    // TODO: updateActionList();
+                    updateActionDefList();
                     return;
                 }
             }
@@ -215,7 +231,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
                     player.contactBodies.remove(fixA.getBody());
                     if (player.contactBodies.isEmpty()) {
                         player.setState(Player.PlayerState.AIR_ACTIVE);
-                        // TODO: updateActionList();
+                        updateActionDefList();
                     }
                     return;
                 }
@@ -226,7 +242,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
                     player.contactBodies.remove(fixB.getBody());
                     if (player.contactBodies.isEmpty()) {
                         player.setState(Player.PlayerState.AIR_ACTIVE);
-                        // TODO: updateActionList();
+                        updateActionDefList();
                     }
                     return;
                 }
