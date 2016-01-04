@@ -108,6 +108,9 @@ public class MainGdxGame extends ApplicationAdapter {
                 (MAP_WIDTH / 2.0f) + MAP_KILL_MARGIN,
                 MAP_HEIGHT + MAP_KILL_MARGIN);
 
+        // Update the players and process any actions they have performed
+        playerManager.update();
+
         // Update the Box2D world
         doPhysicsStep(Gdx.graphics.getDeltaTime());
 

@@ -33,23 +33,14 @@ public class Player {
     public Fixture fixture = null;
     public PlayerState state;
     public ArrayList<Body> contactBodies;
-    public EnumMap<PlayerState, PlayerStateAttributes> stateAttributes;
 
-    public static class PlayerStateAttributes {
-        public float jumpPower;
-        public float runPower;
-        public float horizDeadZoneCos;
-        public float vertDeadZoneCos;
-        public float horizDeadZoneAng;
-        public float vertDeadZoneAng;
-    }
+    private boolean needsStateUpdate = false;
 
     public enum PlayerState {
         AIR_ACTIVE('A'),
-        AIR_PUFF('P'),
+        AIR_INACTIVE('I'),
         FOOT_ACTIVE('F'),
-        FOOT_WALK('W'),
-        FOOT_RUN('R');
+        FOOT_INACTIVE('L');
 
         public final char stateIcon;
 
@@ -61,40 +52,12 @@ public class Player {
     public void setState(PlayerState newState) {
         if (newState == this.state) {
             return;
+        } else {
+            needsStateUpdate = true;
+            System.out.print("New state: " + newState.toString() + "\n");
+            state = newState;
+
         }
-
-        switch (newState) {
-            case FOOT_ACTIVE:
-                Body floorBody = getFloorBody();
-                this.body.setFixedRotation(true);
-                this.body.setAngularVelocity(0.0f);
-                this.body.setLinearDamping(getFloorBody().getLinearDamping());
-                break;
-            case FOOT_WALK:
-                // Don't need to do anything special - settings same as FOOT_ACTIVE.
-                break;
-            case FOOT_RUN:
-                this.body.setLinearDamping(0.0f);
-                break;
-            case AIR_ACTIVE:
-            case AIR_PUFF:
-                this.body.setFixedRotation(false);
-                this.body.setLinearDamping(AIR_LINEAR_DAMPING);
-                this.body.setAngularDamping(AIR_ANGULAR_DAMPING);
-                break;
-        }
-
-        System.out.print("New state: " + newState.toString() + "\n");
-
-        state = newState;
-    }
-
-    public void update() {
-
-    }
-
-    public PlayerStateAttributes getStateAttributes() {
-        return stateAttributes.get(state);
     }
 
     private Body getFloorBody() {
@@ -102,6 +65,45 @@ public class Player {
             return null;
         } else {
             return contactBodies.get(0);
+        }
+    }
+
+    public void update() {
+        if (needsStateUpdate) {
+            needsStateUpdate = false;
+            switch (state) {
+                case FOOT_ACTIVE: {
+                    Body floorBody = getFloorBody();
+                    this.body.setFixedRotation(true);
+                    this.body.setAngularVelocity(0.0f);
+                    this.body.setLinearDamping(getFloorBody().getLinearDamping());
+                    break;
+                }
+                case FOOT_INACTIVE: {
+                    Body floorBody = getFloorBody();
+                    this.body.setFixedRotation(false);
+                    this.body.setLinearDamping(getFloorBody().getLinearDamping());
+                    break;
+                }
+                case AIR_ACTIVE: {
+                    this.body.setFixedRotation(true);
+                    this.body.setLinearDamping(AIR_LINEAR_DAMPING);
+                    this.body.setAngularDamping(AIR_ANGULAR_DAMPING);
+                    break;
+                }
+                case AIR_INACTIVE: {
+                    this.body.setFixedRotation(false);
+                    this.body.setLinearDamping(AIR_LINEAR_DAMPING);
+                    this.body.setAngularDamping(AIR_ANGULAR_DAMPING);
+                    break;
+                }
+            }
+        }
+
+        // If the player is on Foot and Active, update which way they are facing.
+        if (state == PlayerState.FOOT_ACTIVE && this.body.getLinearVelocity().x != 0.0f) {
+            this.body.setTransform(this.body.getPosition(),
+                    this.body.getLinearVelocity().x > 0.0f ? 0.0f : MathUtils.PI);
         }
     }
 }

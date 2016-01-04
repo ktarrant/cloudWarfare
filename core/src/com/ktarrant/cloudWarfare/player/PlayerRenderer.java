@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
+import com.ktarrant.cloudWarfare.action.ActionDef;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -38,26 +39,16 @@ public class PlayerRenderer extends ShapeRenderer {
         textBatch.setProjectionMatrix(matrix);
     }
 
-    public void drawPlayerControlHelp(Player player) {
-        Player.PlayerStateAttributes attr = player.getStateAttributes();
+    public void drawPlayerControlHelp(Player player, ActionDef actionDef) {
         this.set(ShapeType.Filled);
         this.setColor(0.2f, 0.2f, 0.2f, 0.1f);
         Vector2 playerPos = player.body.getPosition();
         float playerRadius = player.circleShape.getRadius();
-        float arcRadius = playerRadius * 40.0f;
-        float arcAngle = attr.horizDeadZoneAng * 180.0f / MathUtils.PI;
-        float arcStart = -(arcAngle / 2.0f);
+        float arcRadius = playerRadius * 4.0f;
+        float arcAngle = MathUtils.radiansToDegrees * actionDef.actionLengthAngle;
+        float arcStart = MathUtils.radiansToDegrees * actionDef.actionStartAngle;
         if (arcAngle > 0) {
-            arc(playerPos.x, playerPos.y, arcRadius, arcStart, arcAngle);
-            arcStart += 180.0f;
-            arc(playerPos.x, playerPos.y, arcRadius, arcStart, arcAngle);
-        }
-        arcAngle = attr.vertDeadZoneAng * 180.0f / MathUtils.PI;
-        arcStart = -(arcAngle / 2.0f) + 90.0f;
-        if (arcAngle > 0) {
-            arc(playerPos.x, playerPos.y, arcRadius, arcStart, arcAngle);
-            arcStart += 180.0f;
-            arc(playerPos.x, playerPos.y, arcRadius, arcStart, arcAngle);
+            arc(playerPos.x, playerPos.y, arcRadius, arcStart, arcAngle, 32);
         }
     }
 

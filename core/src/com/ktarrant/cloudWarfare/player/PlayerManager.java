@@ -19,20 +19,30 @@ import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.ktarrant.cloudWarfare.action.Action;
+import com.ktarrant.cloudWarfare.action.ActionDef;
+import com.ktarrant.cloudWarfare.action.ActionModifier;
 
 import java.util.ArrayList;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Created by ktarrant1 on 12/27/15.
  */
 public class PlayerManager implements GestureDetector.GestureListener, ContactListener, Disposable {
     public static final Vector2 DEFAULT_START_POS = new Vector2(0.0f, 10.0f);
+    public static final int MAX_CONCURRENT_ACTIONS = 16;
 
     protected World world;
     protected Camera camera;
     protected Vector2 startPos;
     protected Array<Player> players;
     protected Player activePlayer;
+
+    // TODO: Flush out Action Queue, List, Map
+    protected Queue<Action> actionQueue;
+    protected ActionDef curActionDef;
 
     public PlayerManager(World world, Camera camera) {
         this.world = world;
@@ -42,6 +52,14 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
 
         // Set us as the contact listener so we can catch player contacts
         world.setContactListener(this);
+
+        this.actionQueue = new ArrayBlockingQueue<Action>(MAX_CONCURRENT_ACTIONS);
+        curActionDef = new ActionDef(
+                -MathUtils.PI,
+                MathUtils.PI2,
+                new Vector2(1.0f, 1.0f),
+                Vector2.Zero
+        );
     }
 
     public void addMainPlayer() {
@@ -68,10 +86,24 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
         if (activePlayer != null) {
             renderer.setProjectionMatrix(camera.combined);
             renderer.begin();
-            renderer.drawPlayerControlHelp(activePlayer);
+            renderer.drawPlayerControlHelp(activePlayer, curActionDef);
             renderer.end();
             renderer.drawEnvironmentData(activePlayer);
             renderer.drawPlayerState(activePlayer);
+        }
+    }
+
+    public void update() {
+        // First, perform all the Actions in the queue
+        Action action;
+        while (!actionQueue.isEmpty()) {
+            action = actionQueue.poll();
+            action.execute();
+        }
+
+        // Then update all the players
+        for (Player player : players) {
+            player.update();
         }
     }
 
@@ -98,89 +130,26 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
         Vector3 worldCoor = camera.unproject(new Vector3(x, y, 0.0f));
         Vector2 playerPos = activePlayer.body.getPosition();
         Vector2 cursorVec = new Vector2(worldCoor.x - playerPos.x, worldCoor.y - playerPos.y);
-        float curAng = MathUtils.atan2(cursorVec.y, cursorVec.x);
-        Vector2 impulse = new Vector2(MathUtils.cos(curAng), MathUtils.sin(curAng));
 
-        // Interpret the tap based on the current state of the character
-        Player.PlayerStateAttributes attr = activePlayer.getStateAttributes();
-        switch (activePlayer.state) {
-            case AIR_ACTIVE:
-            case AIR_PUFF:
-                if (attr.vertDeadZoneCos > 0) {
-                    if (impulse.y > attr.vertDeadZoneCos) {
-                        activePlayer.setState(Player.PlayerState.AIR_PUFF);
-                        impulse.set(0.0f, activePlayer.getStateAttributes().jumpPower);
-                    } else if (impulse.y < -attr.vertDeadZoneCos) {
-                        // TODO: activePlayer.setState(Player.PlayerState.AIR_SPIKE);
-                        // TODO: impulse.set(0.0f, activePlayer.getStateAttributes().spikePower);
-                    } else {
-                        activePlayer.setState(Player.PlayerState.AIR_ACTIVE);
-                    }
-                }
-                break;
+        if (curActionDef.isInCaptureZone(cursorVec)) {
+            // There is an ActionDef for this Tap, create an Action from it
+            Action action = new Action(
+                    activePlayer,
+                    ActionModifier.NORMAL,
+                    curActionDef,
+                    cursorVec
+            );
 
-            case FOOT_WALK:
-            case FOOT_RUN:
-            case FOOT_ACTIVE:
-                if (attr.horizDeadZoneCos > 0) {
-                    if (impulse.x > attr.horizDeadZoneCos) {
-                        activePlayer.setState(Player.PlayerState.FOOT_WALK);
-                        impulse.set(activePlayer.getStateAttributes().runPower, 0.0f);
-                        activePlayer.body.setTransform(activePlayer.body.getPosition(), 0.0f);
-                    } else if (impulse.x > attr.horizDeadZoneCos) {
-                        activePlayer.setState(Player.PlayerState.FOOT_WALK);
-                        impulse.set(activePlayer.getStateAttributes().runPower, 0.0f);
-                        activePlayer.body.setTransform(activePlayer.body.getPosition(),
-                                MathUtils.PI);
-                    }
-                }
-        }
-
-        // Move the player
-        activePlayer.body.applyLinearImpulse(impulse,
-                activePlayer.body.getPosition(),
-                true);
-        if (attr.horizDeadZoneCos > 0) {
-            if (impulse.x > attr.horizDeadZoneCos) {
-                impulse.set(1.0f, 0.0f);
-
-            }
-            if (impulse.x < -attr.horizDeadZoneCos) {
-                impulse.set(-1.0f, 0.0f);
-            }
-        }
-        if (attr.vertDeadZoneCos > 0) {
-            if (impulse.y > attr.vertDeadZoneCos) {
-                impulse.set(0.0f, 1.0f);
-            }
-            if (impulse.y < -attr.vertDeadZoneCos) {
-                impulse.set(0.0f, -1.0f);
-            }
-        }
-        switch (activePlayer.state) {
-            case AIR_ACTIVE:
-            case AIR_PUFF:
-                if (worldCoor.y > playerPos.y) { // Going upwards, puff up!
-                    activePlayer.setState(Player.PlayerState.AIR_PUFF);
-                } else { // Dodging to the side or diving down
-                    activePlayer.setState(Player.PlayerState.AIR_ACTIVE);
-                }
-                break;
-            case FOOT_ACTIVE:
-                activePlayer.setState(Player.PlayerState.FOOT_WALK);
-                activePlayer.body.setTransform(activePlayer.body.getPosition(),
-                        (impulse.x > 0) ? 0.0f : MathUtils.PI);
-                break;
-            case FOOT_WALK:
-            default:
-                return false;
+            // Add it to the ActionQueue
+            actionQueue.add(action);
+        } else {
+            System.out.println("Move not captured. Direction: " + cursorVec.toString());
         }
         return true;
     }
 
     @Override
     public boolean longPress(float x, float y) {
-        System.out.println(String.format("Long press: %f, %f", x, y));
         return false;
     }
 
@@ -219,6 +188,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
                 if (player.fixture == fixB) {
                     player.contactBodies.add(fixA.getBody());
                     player.setState(Player.PlayerState.FOOT_ACTIVE);
+                    // TODO: updateActionList();
                     return;
                 }
             }
@@ -227,6 +197,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
                 if (player.fixture == fixA) {
                     player.contactBodies.add(fixA.getBody());
                     player.setState(Player.PlayerState.FOOT_ACTIVE);
+                    // TODO: updateActionList();
                     return;
                 }
             }
@@ -244,6 +215,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
                     player.contactBodies.remove(fixA.getBody());
                     if (player.contactBodies.isEmpty()) {
                         player.setState(Player.PlayerState.AIR_ACTIVE);
+                        // TODO: updateActionList();
                     }
                     return;
                 }
@@ -254,6 +226,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
                     player.contactBodies.remove(fixB.getBody());
                     if (player.contactBodies.isEmpty()) {
                         player.setState(Player.PlayerState.AIR_ACTIVE);
+                        // TODO: updateActionList();
                     }
                     return;
                 }
