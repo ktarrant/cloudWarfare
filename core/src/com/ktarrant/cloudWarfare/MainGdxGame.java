@@ -91,6 +91,9 @@ public class MainGdxGame extends ApplicationAdapter {
         float frameTime = Math.min(deltaTime, 0.25f);
         accumulator += frameTime;
         while (accumulator >= TIME_STEP) {
+            // Update the players and process any actions they have performed
+            playerManager.update(TIME_STEP);
+            // Then update the physics of the world
             testWorld.world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
             accumulator -= TIME_STEP;
         }
@@ -107,9 +110,6 @@ public class MainGdxGame extends ApplicationAdapter {
                 -MAP_KILL_MARGIN,
                 (MAP_WIDTH / 2.0f) + MAP_KILL_MARGIN,
                 MAP_HEIGHT + MAP_KILL_MARGIN);
-
-        // Update the players and process any actions they have performed
-        playerManager.update();
 
         // Update the Box2D world
         doPhysicsStep(Gdx.graphics.getDeltaTime());

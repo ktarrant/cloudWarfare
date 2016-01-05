@@ -23,8 +23,18 @@ public class Action {
     }
 
     public void execute() {
+        float staminaAfter =
+                player.stamina * this.actionDef.depleteMultiplier - this.actionDef.depleteConstant;
+        if (staminaAfter < 0.0f) {
+            // Not enough stamina
+            return;
+        }
+
         direction.scl(actionDef.linearImpulseMultiplier);
         direction.add(actionDef.linearImpulseConstant);
+        direction.scl(player.stamina);
         player.body.applyLinearImpulse(direction, Vector2.Zero, true);
+
+        player.stamina = staminaAfter;
     }
 }

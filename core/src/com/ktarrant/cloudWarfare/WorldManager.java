@@ -32,7 +32,7 @@ public class WorldManager {
         // Set its world position
         testWorld.groundBodyDef.position.set(new Vector2(0, 0));
         // Give it some linear dampening - will be transferred to players that land on it
-        testWorld.groundBodyDef.linearDamping = 10.0f;
+        testWorld.groundBodyDef.linearDamping = 1.0f;
 
         // Create a body from the defintion and add it to the world
         testWorld.groundBody = testWorld.world.createBody(testWorld.groundBodyDef);

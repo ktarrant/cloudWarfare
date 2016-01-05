@@ -1,31 +1,27 @@
 package com.ktarrant.cloudWarfare.player;
 
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.Contact;
-import com.badlogic.gdx.physics.box2d.ContactImpulse;
-import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.Manifold;
-import com.badlogic.gdx.physics.box2d.World;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
 
 /**
  * Created by ktarrant1 on 12/20/15.
  */
 public class Player {
-    public static final float AIR_LINEAR_DAMPING = 0.5f;
-    public static final float AIR_ANGULAR_DAMPING = 0.5f;
+    public static final float DEFAULT_MAX_STAMINA = 1.0f;
+    public static final float DEFAULT_STAMINA_REGEN_RATE = 0.65f;
+    public static final float AIR_LINEAR_DAMPING = 1.0f;
+    public static final float AIR_ANGULAR_DAMPING = 1.0f;
 
+    public final float maxStamina;
+    public final float staminaRegenRate;
+    public float stamina;
+    public boolean isRunning;
     public BodyDef bodyDef = null;
     public Body body = null;
     public CircleShape circleShape = null;
@@ -36,17 +32,14 @@ public class Player {
 
     private boolean needsStateUpdate = false;
 
-    public enum PlayerState {
-        AIR_ACTIVE('A'),
-        AIR_INACTIVE('I'),
-        FOOT_ACTIVE('F'),
-        FOOT_INACTIVE('L');
+    public Player(float maxStamina, float staminaRegenRate) {
+        this.maxStamina = maxStamina;
+        this.staminaRegenRate = staminaRegenRate;
+        this.stamina = maxStamina;
+    }
 
-        public final char stateIcon;
-
-        private PlayerState(char stateIcon) {
-            this.stateIcon = stateIcon;
-        }
+    public Player() {
+        this(DEFAULT_MAX_STAMINA, DEFAULT_STAMINA_REGEN_RATE);
     }
 
     public void setState(PlayerState newState) {
@@ -56,7 +49,6 @@ public class Player {
             needsStateUpdate = true;
             System.out.print("New state: " + newState.toString() + "\n");
             state = newState;
-
         }
     }
 
@@ -68,7 +60,7 @@ public class Player {
         }
     }
 
-    public void update() {
+    public void update(float delta) {
         if (needsStateUpdate) {
             needsStateUpdate = false;
             switch (state) {
@@ -105,5 +97,17 @@ public class Player {
             this.body.setTransform(this.body.getPosition(),
                     this.body.getLinearVelocity().x > 0.0f ? 0.0f : MathUtils.PI);
         }
+
+        if (this.stamina < maxStamina &&
+                state == PlayerState.FOOT_ACTIVE || state == PlayerState.FOOT_INACTIVE) {
+
+            // If the player is on Foot, replenish stamina
+            this.stamina += DEFAULT_STAMINA_REGEN_RATE * delta;
+            this.stamina = (this.stamina > maxStamina) ? maxStamina : this.stamina;
+        }
+    }
+
+    public float getStamina() {
+        return stamina;
     }
 }

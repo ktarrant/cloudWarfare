@@ -11,16 +11,22 @@ public class ActionDef {
     public final float actionLengthAngle;
     public Vector2 linearImpulseMultiplier;
     public Vector2 linearImpulseConstant;
+    public final float depleteConstant;
+    public final float depleteMultiplier;
 
     public ActionDef(float actionStartAngle,
                      float actionLengthAngle,
                      Vector2 linearImpulseMultiplier,
-                     Vector2 linearImpulseConstant) {
+                     Vector2 linearImpulseConstant,
+                     float depleteConstant,
+                     float depleteMultiplier) {
 
         this.actionStartAngle = actionStartAngle;
         this.actionLengthAngle = actionLengthAngle;
         this.linearImpulseMultiplier = linearImpulseMultiplier;
         this.linearImpulseConstant = linearImpulseConstant;
+        this.depleteConstant = depleteConstant;
+        this.depleteMultiplier = depleteMultiplier;
     }
 
 

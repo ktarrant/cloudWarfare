@@ -1,20 +1,14 @@
 package com.ktarrant.cloudWarfare.player;
 
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.input.GestureDetector;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
@@ -24,7 +18,6 @@ import com.ktarrant.cloudWarfare.action.ActionDef;
 import com.ktarrant.cloudWarfare.action.ActionDefLoader;
 import com.ktarrant.cloudWarfare.action.ActionModifier;
 
-import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -96,19 +89,18 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
 
     public void draw(PlayerRenderer renderer) {
         if (activePlayer != null) {
+            renderer.updateEnvironmentData("Stamina", activePlayer.getStamina());
             renderer.setProjectionMatrix(camera.combined);
             renderer.begin();
 
-            for (ActionDef actionDef : curActionDefList) {
-                renderer.drawPlayerControlHelp(activePlayer, actionDef);
-            }
+            renderer.drawPlayerControlHelp(activePlayer, curActionDefList);
             renderer.end();
             renderer.drawEnvironmentData(activePlayer);
             renderer.drawPlayerState(activePlayer);
         }
     }
 
-    public void update() {
+    public void update(float delta) {
         // First, perform all the Actions in the queue
         Action action;
         while (!actionQueue.isEmpty()) {
@@ -118,7 +110,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
 
         // Then update all the players
         for (Player player : players) {
-            player.update();
+            player.update(delta);
         }
     }
 
@@ -203,7 +195,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
             for (Player player : players) {
                 if (player.fixture == fixB) {
                     player.contactBodies.add(fixA.getBody());
-                    player.setState(Player.PlayerState.FOOT_ACTIVE);
+                    player.setState(PlayerState.FOOT_ACTIVE);
                     updateActionDefList();
                     return;
                 }
@@ -212,7 +204,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
             for (Player player : players) {
                 if (player.fixture == fixA) {
                     player.contactBodies.add(fixA.getBody());
-                    player.setState(Player.PlayerState.FOOT_ACTIVE);
+                    player.setState(PlayerState.FOOT_ACTIVE);
                     updateActionDefList();
                     return;
                 }
@@ -230,7 +222,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
                 if (player.fixture == fixB) {
                     player.contactBodies.remove(fixA.getBody());
                     if (player.contactBodies.isEmpty()) {
-                        player.setState(Player.PlayerState.AIR_ACTIVE);
+                        player.setState(PlayerState.AIR_ACTIVE);
                         updateActionDefList();
                     }
                     return;
@@ -241,7 +233,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
                 if (player.fixture == fixA) {
                     player.contactBodies.remove(fixB.getBody());
                     if (player.contactBodies.isEmpty()) {
-                        player.setState(Player.PlayerState.AIR_ACTIVE);
+                        player.setState(PlayerState.AIR_ACTIVE);
                         updateActionDefList();
                     }
                     return;

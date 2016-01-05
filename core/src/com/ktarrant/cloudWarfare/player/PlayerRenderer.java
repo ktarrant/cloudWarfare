@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 import com.ktarrant.cloudWarfare.action.ActionDef;
 
 import java.util.HashMap;
@@ -18,6 +19,24 @@ import java.util.Set;
  * Created by ktarrant1 on 12/23/15.
  */
 public class PlayerRenderer extends ShapeRenderer {
+    public static final float CONTROL_COLOR_ALPHA = 0.8f;
+    public static final float CONTROL_COLOR_SAT = 0.4f;
+    public static final Color[] CONTROL_COLOR_LIST;
+    static {
+        CONTROL_COLOR_LIST = new Color[8];
+        int i = 0;
+        for (float r = 0.0f; r <= CONTROL_COLOR_SAT; r += CONTROL_COLOR_SAT) {
+            for (float g = 0.0f; g <= CONTROL_COLOR_SAT; g += CONTROL_COLOR_SAT) {
+                for (float b = 0.0f; b <= CONTROL_COLOR_SAT; b += CONTROL_COLOR_SAT) {
+                    if (r == 0.0f && g == 0.0f && b == 0.0f) {
+                        // skip black
+                        continue;
+                    }
+                    CONTROL_COLOR_LIST[i++] = new Color(r, g, b, CONTROL_COLOR_ALPHA);
+                }
+            }
+        }
+    }
     protected HashMap<String, PlayerDataLabel> envData;
     protected SpriteBatch textBatch;
     protected BitmapFont font;
@@ -39,16 +58,20 @@ public class PlayerRenderer extends ShapeRenderer {
         textBatch.setProjectionMatrix(matrix);
     }
 
-    public void drawPlayerControlHelp(Player player, ActionDef actionDef) {
+    public void drawPlayerControlHelp(Player player, Array<ActionDef> actionDefList) {
         this.set(ShapeType.Filled);
-        this.setColor(0.2f, 0.2f, 0.2f, 0.1f);
         Vector2 playerPos = player.body.getPosition();
         float playerRadius = player.circleShape.getRadius();
         float arcRadius = playerRadius * 4.0f;
-        float arcAngle = MathUtils.radiansToDegrees * actionDef.actionLengthAngle;
-        float arcStart = MathUtils.radiansToDegrees * actionDef.actionStartAngle;
-        if (arcAngle > 0) {
-            arc(playerPos.x, playerPos.y, arcRadius, arcStart, arcAngle, 32);
+        int colorIndex = 0;
+        for (ActionDef actionDef : actionDefList) {
+            this.setColor(CONTROL_COLOR_LIST[colorIndex]);
+            float arcAngle = MathUtils.radiansToDegrees * actionDef.actionLengthAngle;
+            float arcStart = MathUtils.radiansToDegrees * actionDef.actionStartAngle;
+            if (arcAngle > 0) {
+                arc(playerPos.x, playerPos.y, arcRadius, arcStart, arcAngle, 32);
+            }
+            colorIndex = (colorIndex + 1) % actionDefList.size;
         }
     }
 
