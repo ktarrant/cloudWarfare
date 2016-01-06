@@ -105,7 +105,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
         Action action;
         while (!actionQueue.isEmpty()) {
             action = actionQueue.poll();
-            action.execute();
+            action.execute(delta);
         }
 
         // Then update all the players
@@ -145,7 +145,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
                         activePlayer,
                         ActionModifier.NORMAL,
                         actionDef,
-                        cursorVec
+                        cursorVec.nor()
                 );
 
                 // Add it to the ActionQueue

@@ -22,14 +22,13 @@ public class Action {
         this.direction = direction;
     }
 
-    public void execute() {
+    public void execute(float delta) {
         float staminaAfter =
                 player.stamina * this.actionDef.depleteMultiplier - this.actionDef.depleteConstant;
         if (staminaAfter < 0.0f) {
             // Not enough stamina
             return;
         }
-
         direction.scl(actionDef.linearImpulseMultiplier);
         direction.add(actionDef.linearImpulseConstant);
         direction.scl(player.stamina);

@@ -14,7 +14,8 @@ import java.util.ArrayList;
  */
 public class Player {
     public static final float DEFAULT_MAX_STAMINA = 1.0f;
-    public static final float DEFAULT_STAMINA_REGEN_RATE = 0.65f;
+    public static final float DEFAULT_STAMINA_GROUND_REGEN_RATE = 0.65f;
+    public static final float DEFAULT_STAMINA_AIR_REGEN_RATE = 0.15f;
     public static final float AIR_LINEAR_DAMPING = 1.0f;
     public static final float AIR_ANGULAR_DAMPING = 1.0f;
 
@@ -39,7 +40,7 @@ public class Player {
     }
 
     public Player() {
-        this(DEFAULT_MAX_STAMINA, DEFAULT_STAMINA_REGEN_RATE);
+        this(DEFAULT_MAX_STAMINA, DEFAULT_STAMINA_AIR_REGEN_RATE);
     }
 
     public void setState(PlayerState newState) {
@@ -98,13 +99,13 @@ public class Player {
                     this.body.getLinearVelocity().x > 0.0f ? 0.0f : MathUtils.PI);
         }
 
-        if (this.stamina < maxStamina &&
-                state == PlayerState.FOOT_ACTIVE || state == PlayerState.FOOT_INACTIVE) {
-
-            // If the player is on Foot, replenish stamina
-            this.stamina += DEFAULT_STAMINA_REGEN_RATE * delta;
-            this.stamina = (this.stamina > maxStamina) ? maxStamina : this.stamina;
-        }
+        // If the player is on Foot, replenish stamina faster
+        float staminaRate = ((state == PlayerState.FOOT_INACTIVE) ||
+                (state == PlayerState.FOOT_ACTIVE)) ?
+                DEFAULT_STAMINA_GROUND_REGEN_RATE :
+                DEFAULT_STAMINA_AIR_REGEN_RATE;
+        this.stamina += staminaRate * delta;
+        this.stamina = (this.stamina > maxStamina) ? maxStamina : this.stamina;
     }
 
     public float getStamina() {
