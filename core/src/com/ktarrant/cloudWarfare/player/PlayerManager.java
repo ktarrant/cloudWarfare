@@ -178,6 +178,7 @@ public class PlayerManager implements GestureDetector.GestureListener, ContactLi
 
     @Override
     public boolean zoom(float initialDistance, float distance) {
+        System.out.println(String.format("Zoom: init = %f ; dist = %f", initialDistance, distance));
         return false;
     }
 

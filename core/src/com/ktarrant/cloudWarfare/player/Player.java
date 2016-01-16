@@ -14,15 +14,8 @@ import java.util.ArrayList;
  */
 public class Player {
     public static final float DEFAULT_MAX_STAMINA = 1.0f;
-    public static final float DEFAULT_STAMINA_GROUND_REGEN_RATE = 0.65f;
-    public static final float DEFAULT_STAMINA_AIR_REGEN_RATE = 0.15f;
-    public static final float AIR_LINEAR_DAMPING = 1.0f;
-    public static final float AIR_ANGULAR_DAMPING = 1.0f;
-
-    public final float maxStamina;
-    public final float staminaRegenRate;
+    public float maxStamina;
     public float stamina;
-    public boolean isRunning;
     public BodyDef bodyDef = null;
     public Body body = null;
     public CircleShape circleShape = null;
@@ -33,14 +26,13 @@ public class Player {
 
     private boolean needsStateUpdate = false;
 
-    public Player(float maxStamina, float staminaRegenRate) {
+    public Player(float maxStamina) {
         this.maxStamina = maxStamina;
-        this.staminaRegenRate = staminaRegenRate;
         this.stamina = maxStamina;
     }
 
     public Player() {
-        this(DEFAULT_MAX_STAMINA, DEFAULT_STAMINA_AIR_REGEN_RATE);
+        this(DEFAULT_MAX_STAMINA);
     }
 
     public void setState(PlayerState newState) {
@@ -64,32 +56,16 @@ public class Player {
     public void update(float delta) {
         if (needsStateUpdate) {
             needsStateUpdate = false;
-            switch (state) {
-                case FOOT_ACTIVE: {
-                    Body floorBody = getFloorBody();
-                    this.body.setFixedRotation(true);
-                    this.body.setAngularVelocity(0.0f);
-                    this.body.setLinearDamping(getFloorBody().getLinearDamping());
-                    break;
-                }
-                case FOOT_INACTIVE: {
-                    Body floorBody = getFloorBody();
-                    this.body.setFixedRotation(false);
-                    this.body.setLinearDamping(getFloorBody().getLinearDamping());
-                    break;
-                }
-                case AIR_ACTIVE: {
-                    this.body.setFixedRotation(true);
-                    this.body.setLinearDamping(AIR_LINEAR_DAMPING);
-                    this.body.setAngularDamping(AIR_ANGULAR_DAMPING);
-                    break;
-                }
-                case AIR_INACTIVE: {
-                    this.body.setFixedRotation(false);
-                    this.body.setLinearDamping(AIR_LINEAR_DAMPING);
-                    this.body.setAngularDamping(AIR_ANGULAR_DAMPING);
-                    break;
-                }
+
+            // Update any properties we can regardless of state
+            this.body.setFixedRotation(state.isFixedRotation);
+            this.body.setAngularDamping(state.angularDamping);
+
+            if (state.isOnFoot) {
+                Body floorBody = getFloorBody();
+                this.body.setLinearDamping(state.linearDamping * floorBody.getLinearDamping());
+            } else {
+                this.body.setLinearDamping(state.linearDamping);
             }
         }
 
@@ -100,11 +76,7 @@ public class Player {
         }
 
         // If the player is on Foot, replenish stamina faster
-        float staminaRate = ((state == PlayerState.FOOT_INACTIVE) ||
-                (state == PlayerState.FOOT_ACTIVE)) ?
-                DEFAULT_STAMINA_GROUND_REGEN_RATE :
-                DEFAULT_STAMINA_AIR_REGEN_RATE;
-        this.stamina += staminaRate * delta;
+        this.stamina += state.staminaRegenRate * delta;
         this.stamina = (this.stamina > maxStamina) ? maxStamina : this.stamina;
     }
 

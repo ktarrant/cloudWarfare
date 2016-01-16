@@ -2,6 +2,9 @@ package com.ktarrant.cloudWarfare;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -40,6 +43,8 @@ public class MainGdxGame extends ApplicationAdapter {
     OrthographicCamera camera;
     PlayerManager playerManager;
     PlayerRenderer playerRenderer;
+    GestureDetector gestureDetector;
+    InputMultiplexer multiplexer;
 
     @Override
     public void create() {
@@ -82,7 +87,10 @@ public class MainGdxGame extends ApplicationAdapter {
         playerRenderer = new PlayerRenderer(fontSmall);
 
         // Set up the control processing
-        Gdx.input.setInputProcessor(new GestureDetector(playerManager));
+        gestureDetector = new GestureDetector(playerManager);
+        multiplexer = new InputMultiplexer();
+        multiplexer.addProcessor(gestureDetector);
+        Gdx.input.setInputProcessor(multiplexer);
     }
 
     private void doPhysicsStep(float deltaTime) {

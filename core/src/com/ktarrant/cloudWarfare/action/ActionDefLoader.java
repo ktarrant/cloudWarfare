@@ -10,8 +10,10 @@ import com.ktarrant.cloudWarfare.player.PlayerState;
  */
 public class ActionDefLoader {
     public static final float DEFAULT_CAPTURE_ANGLE = MathUtils.PI / 6.0f;
-    public static final Vector2 DEFAULT_PUFF_POWER = new Vector2(0.65f, 3.0f);
-    public static final Vector2 DEFAULT_JUMP_POWER = new Vector2(0.9f, 5.0f);
+//    public static final Vector2 DEFAULT_PUFF_POWER = new Vector2(0.65f, 3.0f);
+//    public static final Vector2 DEFAULT_JUMP_POWER = new Vector2(0.9f, 5.0f);
+    public static final Vector2 DEFAULT_PUFF_POWER = new Vector2(0.7f, 2.0f);
+    public static final Vector2 DEFAULT_JUMP_POWER = new Vector2(1.2f, 2.5f);
     public static final Vector2 DEFAULT_RUN_RIGHT_POWER = new Vector2(1.3f, 0.0f);
     public static final Vector2 DEFAULT_RUN_LEFT_POWER = new Vector2(-1.3f, 0.0f);
     public static final float DEFAULT_DEPLETE_CONSTANT = 0.1f;
