@@ -18,6 +18,7 @@ public class ActionDefLoader {
     public static final Vector2 DEFAULT_RUN_LEFT_POWER = new Vector2(-1.3f, 0.0f);
     public static final float DEFAULT_DEPLETE_CONSTANT = 0.1f;
     public static final float DEFAULT_DEPLETE_MULTIPLIER = 0.85f;
+    public static final float DEFAULT_REPEAT_INTERVAL = 0.25f;
 
     ActionDef puffDef;
     ActionDef jumpDef;
@@ -35,7 +36,8 @@ public class ActionDefLoader {
                 DEFAULT_PUFF_POWER,
                 Vector2.Zero,
                 DEFAULT_DEPLETE_CONSTANT,
-                DEFAULT_DEPLETE_MULTIPLIER
+                DEFAULT_DEPLETE_MULTIPLIER,
+                DEFAULT_REPEAT_INTERVAL
         );
 
         jumpDef = new ActionDef(
@@ -44,7 +46,8 @@ public class ActionDefLoader {
                 DEFAULT_JUMP_POWER,
                 Vector2.Zero,
                 DEFAULT_DEPLETE_CONSTANT,
-                DEFAULT_DEPLETE_MULTIPLIER
+                DEFAULT_DEPLETE_MULTIPLIER,
+                DEFAULT_REPEAT_INTERVAL
         );
 
         runRightDef = new ActionDef(
@@ -53,7 +56,8 @@ public class ActionDefLoader {
                 Vector2.Zero,
                 DEFAULT_RUN_RIGHT_POWER,
                 DEFAULT_DEPLETE_CONSTANT,
-                DEFAULT_DEPLETE_MULTIPLIER
+                DEFAULT_DEPLETE_MULTIPLIER,
+                DEFAULT_REPEAT_INTERVAL
         );
 
         runLeftDef = new ActionDef(
@@ -62,7 +66,8 @@ public class ActionDefLoader {
                 Vector2.Zero,
                 DEFAULT_RUN_LEFT_POWER,
                 DEFAULT_DEPLETE_CONSTANT,
-                DEFAULT_DEPLETE_MULTIPLIER
+                DEFAULT_DEPLETE_MULTIPLIER,
+                DEFAULT_REPEAT_INTERVAL
         );
 
         nullList = new Array<ActionDef>();

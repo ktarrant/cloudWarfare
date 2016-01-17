@@ -9,17 +9,19 @@ import com.badlogic.gdx.math.Vector2;
 public class ActionDef {
     public final float actionStartAngle;
     public final float actionLengthAngle;
-    public Vector2 linearImpulseMultiplier;
-    public Vector2 linearImpulseConstant;
+    public final Vector2 linearImpulseMultiplier;
+    public final Vector2 linearImpulseConstant;
     public final float depleteConstant;
     public final float depleteMultiplier;
+    public final float repeatInterval;
 
     public ActionDef(float actionStartAngle,
                      float actionLengthAngle,
                      Vector2 linearImpulseMultiplier,
                      Vector2 linearImpulseConstant,
                      float depleteConstant,
-                     float depleteMultiplier) {
+                     float depleteMultiplier,
+                     float repeatInterval) {
 
         this.actionStartAngle = actionStartAngle;
         this.actionLengthAngle = actionLengthAngle;
@@ -27,6 +29,7 @@ public class ActionDef {
         this.linearImpulseConstant = linearImpulseConstant;
         this.depleteConstant = depleteConstant;
         this.depleteMultiplier = depleteMultiplier;
+        this.repeatInterval = repeatInterval;
     }
 
 

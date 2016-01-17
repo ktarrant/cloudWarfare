@@ -43,7 +43,6 @@ public class MainGdxGame extends ApplicationAdapter {
     OrthographicCamera camera;
     PlayerManager playerManager;
     PlayerRenderer playerRenderer;
-    GestureDetector gestureDetector;
     InputMultiplexer multiplexer;
 
     @Override
@@ -87,9 +86,8 @@ public class MainGdxGame extends ApplicationAdapter {
         playerRenderer = new PlayerRenderer(fontSmall);
 
         // Set up the control processing
-        gestureDetector = new GestureDetector(playerManager);
         multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(gestureDetector);
+        multiplexer.addProcessor(playerManager);
         Gdx.input.setInputProcessor(multiplexer);
     }
 
