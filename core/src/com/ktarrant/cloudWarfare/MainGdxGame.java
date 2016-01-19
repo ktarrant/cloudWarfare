@@ -2,18 +2,13 @@ package com.ktarrant.cloudWarfare;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.input.GestureDetector;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.ktarrant.cloudWarfare.player.Player;
 import com.ktarrant.cloudWarfare.player.PlayerManager;
@@ -43,6 +38,7 @@ public class MainGdxGame extends ApplicationAdapter {
     OrthographicCamera camera;
     PlayerManager playerManager;
     PlayerRenderer playerRenderer;
+    TestInputProcessor inputProc;
     InputMultiplexer multiplexer;
 
     @Override
@@ -65,7 +61,13 @@ public class MainGdxGame extends ApplicationAdapter {
 
         // Add a player
         playerManager = new PlayerManager(testWorld.world, camera);
-        playerManager.addMainPlayer();
+        // Check if the current player fell off the map
+        playerManager.setBounds(
+                (-MAP_WIDTH / 2.0f) - MAP_KILL_MARGIN,
+                -MAP_KILL_MARGIN,
+                (MAP_WIDTH / 2.0f) + MAP_KILL_MARGIN,
+                MAP_HEIGHT + MAP_KILL_MARGIN);
+        playerManager.addNewPlayer();
 
         // Create a renderer that annotates the objects
         debugRenderer = new Box2DDebugRenderer(
@@ -86,8 +88,9 @@ public class MainGdxGame extends ApplicationAdapter {
         playerRenderer = new PlayerRenderer(fontSmall);
 
         // Set up the control processing
+        inputProc = new TestInputProcessor(camera, playerManager);
         multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(playerManager);
+        multiplexer.addProcessor(inputProc);
         Gdx.input.setInputProcessor(multiplexer);
     }
 
@@ -110,20 +113,13 @@ public class MainGdxGame extends ApplicationAdapter {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Check if the current player fell off the map
-        playerManager.checkBounds(
-                (-MAP_WIDTH / 2.0f) - MAP_KILL_MARGIN,
-                -MAP_KILL_MARGIN,
-                (MAP_WIDTH / 2.0f) + MAP_KILL_MARGIN,
-                MAP_HEIGHT + MAP_KILL_MARGIN);
-
         // Update the Box2D world
         doPhysicsStep(Gdx.graphics.getDeltaTime());
 
         // Draw the players
         camera.position.set(playerManager.getActivePosition(), 0);
         camera.update();
-        playerManager.draw(playerRenderer);
+        playerManager.drawDebug(playerRenderer);
 
         debugRenderer.render(testWorld.world, camera.combined);
     }
