@@ -10,8 +10,8 @@ There are a number of state variables the Player has to maintain:
     (d) FOOT_INACTIVE: On foot, not in control
 
 (2) Stamina: The stamina bar represents how many jumps are left,
-    or how much longer the player can run. The stamina bar is
-    replenished while the player is in FOOT_ACTIVE and idle.
+    or how much longer the playerComponent can run. The stamina bar is
+    replenished while the playerComponent is in FOOT_ACTIVE and idle.
 
 (3) ActionModifier: Each hold button on the screen represents a
     different ActionModifier. When the user holds a button,
@@ -33,9 +33,9 @@ Actions
 When the user performs a Tap, it spawns a new Action. An Action
 has the following properties:
 
-(1) Player - the player the Tap action will be handled by.
+(1) Player - the playerComponent the Tap actionSystem will be handled by.
 (2) Direction - the direction of the tap
-(3) ActionModifier - specifies the type of action to perform.
+(3) ActionModifier - specifies the type of actionSystem to perform.
 
 To figure out what the Action should do, we look up an ActionDef
 using a key. The key is basically defined by:
@@ -49,13 +49,13 @@ to that key.
 
 An ActionDef has the following properties:
 
-(1) actionStartAngle : float - Start angle of the capture zone for this action.
-(2) actionLengthAngle : float - Angle representing the size of the capture zone for this action. Use 2*PI
+(1) actionStartAngle : float - Start angle of the capture zone for this actionSystem.
+(2) actionLengthAngle : float - Angle representing the size of the capture zone for this actionSystem. Use 2*PI
         if the Action can be in any direction.
 (3) linearImpulsePower : float - The power to use on a linear impulse.
 (4) angularImpulsePower : float (optional) - The power to use on an angular impulse (NOT ADDED UNTIL NEEDED).
 (5) attackPower : float - The attack power of the move.
-(6) requiresActive : bool - If true, this action requires the player to be "awake".
+(6) requiresActive : bool - If true, this actionSystem requires the playerComponent to be "awake".
 
 
 Process
@@ -66,11 +66,11 @@ Process
     <PlayerState>.<ActionModifier> key. This returns a list of ActionDefs.
 (3) This list of ActionDef s is sorted by PRIORITY. As in, the first entry of the list has the highest priority.
 (4) When the user performs a Tap, a Direction vector is created. The Direction vector represents the location
-    of the tap relative to the position of the player in the map. For instance, if the user taps just above
-    the player, the Direction vector will be something like (0, 1).
+    of the tap relative to the position of the playerComponent in the map. For instance, if the user taps just above
+    the playerComponent, the Direction vector will be something like (0, 1).
 (5) For each ActionDef in the current list of ActionDef s, the Direction vector is checked to see if it lies
     inside the Capture Angle of the ActionDef. For instance, if the ActionDef specifies a start angle of
-    PI/3, and a length angle of PI/3, and the user taps above the player (producing a Direction vector of
+    PI/3, and a length angle of PI/3, and the user taps above the playerComponent (producing a Direction vector of
     [0, 1] and a Direction angle of PI/2) then the Tap matches the AngleDef.
 (6) If a Tap matches one of the AngleDef s, that AngleDef, along with the current Player, the Direction
     vector, and the ActionModifier are used to generate a new Action.

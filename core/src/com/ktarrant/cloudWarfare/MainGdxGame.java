@@ -1,111 +1,59 @@
 package com.ktarrant.cloudWarfare;
 
+import com.badlogic.ashley.core.Engine;
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.*;
-import com.ktarrant.cloudWarfare.player.Player;
-import com.ktarrant.cloudWarfare.player.PlayerManager;
-import com.ktarrant.cloudWarfare.player.PlayerRenderer;
-
-import org.jrenner.smartfont.SmartFontGenerator;
-
-import java.util.ArrayList;
+import com.ktarrant.cloudWarfare.world.ContactSystem;
+import com.ktarrant.cloudWarfare.world.DebugRendererSystem;
+import com.ktarrant.cloudWarfare.world.WorldFactory;
+import com.ktarrant.cloudWarfare.world.WorldSystem;
 
 public class MainGdxGame extends ApplicationAdapter {
-    private static final int VELOCITY_ITERATIONS = 6;
-    private static final int POSITION_ITERATIONS = 2;
-    private static final float TIME_STEP = 1 / 60.0f;
-    private static final float MAP_WIDTH = 50.0f;
-    private static final float MAP_HEIGHT = 50.0f;
-    private static final float MAP_KILL_MARGIN = 50.0f;
-    private static final float MIN_VIEW_WIDTH = 25.0f;
-
-    ArrayList<Player> playerList;
-    Player curPlayer;
-
-    SpriteBatch batch;
-    Texture img;
-    WorldManager.TestWorld testWorld;
-    float accumulator = 0;
-    Box2DDebugRenderer debugRenderer;
-    OrthographicCamera camera;
-    PlayerManager playerManager;
-    PlayerRenderer playerRenderer;
-    TestInputProcessor inputProc;
+    WorldFactory worldFactory;
+//    PlayerSystem playerSystem;
+//    TestInputProcessor inputProc;
     InputMultiplexer multiplexer;
+    Engine engine;
 
     @Override
     public void create() {
-
-        // Old stuff TODO: Get rid of this
-        batch = new SpriteBatch();
-        img = new Texture("badlogic.jpg");
-
         // Set up Box2D
         Box2D.init();
 
-        // Set up the camera view
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, MIN_VIEW_WIDTH,
-                MIN_VIEW_WIDTH * Gdx.graphics.getHeight() / Gdx.graphics.getWidth());
+        // Set up Ashley's Engine and Systems
+        this.engine = new Engine();
+        this.engine.addSystem(new WorldSystem());
+        this.engine.addSystem(new ContactSystem());
+        this.engine.addSystem(new DebugRendererSystem());
 
         // Create some demo objects to play with
-        testWorld = WorldManager.createDemoWorld(MAP_WIDTH);
+        worldFactory = new WorldFactory();
+        Entity demoWorld = worldFactory.createDemoWorld();
 
-        // Add a player
-        playerManager = new PlayerManager(testWorld.world, camera);
-        // Check if the current player fell off the map
-        playerManager.setBounds(
-                (-MAP_WIDTH / 2.0f) - MAP_KILL_MARGIN,
-                -MAP_KILL_MARGIN,
-                (MAP_WIDTH / 2.0f) + MAP_KILL_MARGIN,
-                MAP_HEIGHT + MAP_KILL_MARGIN);
-        playerManager.addNewPlayer();
+//        // Add a player
+//        playerSystem = new PlayerSystem(testWorld.world, camera);
+//        // Check if the current player fell off the map
+//        playerSystem.setBounds(
+//
+//                playerSystem.addNewPlayer();
 
-        // Create a renderer that annotates the objects
-        debugRenderer = new Box2DDebugRenderer(
-                true, 	// boolean drawBodies
-                true, 	// boolean drawJoints
-                false, 	// boolean drawAABBs
-                true, 	// boolean drawInactiveBodies
-                true, 	// boolean drawVelocities
-                true  	// boolean drawContacts
-        );
+//        // Create a font generator and generate a font
+//        SmartFontGenerator fontGen = new SmartFontGenerator();
+//        FileHandle exoFile = Gdx.files.local("open-sans/OpenSans-Regular.ttf");
+//        BitmapFont fontSmall = fontGen.createFont(exoFile, "exo-small", 6);
+//
+//        // Create a renderer that draws the current player
+//        playerRenderer = new PlayerRenderer(fontSmall);
 
-        // Create a font generator and generate a font
-        SmartFontGenerator fontGen = new SmartFontGenerator();
-        FileHandle exoFile = Gdx.files.local("open-sans/OpenSans-Regular.ttf");
-        BitmapFont fontSmall = fontGen.createFont(exoFile, "exo-small", 6);
-
-        // Create a renderer that draws the current player
-        playerRenderer = new PlayerRenderer(fontSmall);
-
-        // Set up the control processing
-        inputProc = new TestInputProcessor(camera, playerManager);
-        multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(inputProc);
-        Gdx.input.setInputProcessor(multiplexer);
-    }
-
-    private void doPhysicsStep(float deltaTime) {
-        // fixed time step
-        // max frame time to avoid spiral of death (on slow devices)
-        float frameTime = Math.min(deltaTime, 0.25f);
-        accumulator += frameTime;
-        while (accumulator >= TIME_STEP) {
-            // Update the players and process any actions they have performed
-            playerManager.update(TIME_STEP);
-            // Then update the physics of the world
-            testWorld.world.step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
-            accumulator -= TIME_STEP;
-        }
+//        // Set up the control processing
+//        inputProc = new TestInputProcessor(camera, playerSystem);
+//        multiplexer = new InputMultiplexer();
+//        multiplexer.addProcessor(inputProc);
+//        Gdx.input.setInputProcessor(multiplexer);
     }
 
     @Override
@@ -113,21 +61,19 @@ public class MainGdxGame extends ApplicationAdapter {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Update the Box2D world
-        doPhysicsStep(Gdx.graphics.getDeltaTime());
+        // Update the Ashley engine. This will automatically update the Box2D world.
+        this.engine.update(Gdx.graphics.getDeltaTime());
 
-        // Draw the players
-        camera.position.set(playerManager.getActivePosition(), 0);
-        camera.update();
-        playerManager.drawDebug(playerRenderer);
-
-        debugRenderer.render(testWorld.world, camera.combined);
+//        // Draw the players
+//        camera.position.set(playerSystem.getActivePosition(), 0);
+//        camera.update();
+//        playerSystem.drawDebug(playerRenderer);
     }
 
     @Override
     public void dispose() {
-        playerManager.dispose();
+//        playerSystem.dispose();
 
-        WorldManager.dispose(testWorld);
+        worldFactory.dispose();
     }
 }
