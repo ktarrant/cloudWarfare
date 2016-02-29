@@ -9,7 +9,8 @@ public enum SystemPriority {
     CONTACT         (1),
     PLAYER_STATE    (2),
     PLAYER          (3),
-    ACTION          (4);
+    ACTION          (4),
+    RENDER          (5);
 
     int priorityValue;
 

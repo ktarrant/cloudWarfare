@@ -8,6 +8,7 @@ import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
+import com.ktarrant.cloudWarfare.SystemPriority;
 
 /**
  * Created by Kevin on 2/28/2016.
@@ -21,7 +22,8 @@ public class DebugRendererSystem extends IteratingSystem {
     private Box2DDebugRenderer debugRenderer;
 
     public DebugRendererSystem() {
-        super(Family.all(WorldComponent.class, CameraComponent.class).get());
+        super(Family.all(WorldComponent.class, CameraComponent.class).get(),
+                SystemPriority.RENDER.getPriorityValue());
 
         // Create a renderer that annotates the objects
         this.debugRenderer = new Box2DDebugRenderer(

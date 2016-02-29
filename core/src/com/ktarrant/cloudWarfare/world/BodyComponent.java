@@ -14,9 +14,9 @@ import com.badlogic.gdx.utils.Array;
  */
 public class BodyComponent implements Component {
     public BodyDef bodyDef = null;
-    public Body body = null;
-    public Shape shape = null;
     public FixtureDef fixtureDef = null;
+    public Shape shape = null;
+    public Body body = null;
     public Fixture fixture = null;
     public Array<Entity> contactBodies = new Array<Entity>();
 }

@@ -8,6 +8,7 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.physics.box2d.*;
 import com.ktarrant.cloudWarfare.player.PlayerFactory;
+import com.ktarrant.cloudWarfare.player.PlayerStateSystem;
 import com.ktarrant.cloudWarfare.player.PlayerSystem;
 import com.ktarrant.cloudWarfare.world.ContactSystem;
 import com.ktarrant.cloudWarfare.world.DebugRendererSystem;
@@ -30,9 +31,12 @@ public class MainGdxGame extends ApplicationAdapter {
 
         // Set up Ashley's Engine and Systems
         this.engine = new Engine();
-        this.engine.addSystem(new PlayerSystem());
-        this.engine.addSystem(new WorldSystem());
-        this.engine.addSystem(new ContactSystem());
+        this.engine.addSystem(new WorldSystem());       // PR. 0
+        this.engine.addSystem(new ContactSystem());     // PR. 1
+        this.engine.addSystem(new PlayerStateSystem()); // PR. 2
+        this.engine.addSystem(new PlayerSystem());      // PR. 3
+//        this.engine.addSystem(new ActionSystem());      // PR. 4
+
         this.engine.addSystem(new DebugRendererSystem());
 
         // Create some demo objects to play with
@@ -40,10 +44,13 @@ public class MainGdxGame extends ApplicationAdapter {
         playerFactory = new PlayerFactory();
         Entity demoWorld = worldFactory.createDemoWorld();
         Entity player = playerFactory.createPlayerEntity(demoWorld);
+        Entity platform = new Entity();
+        platform.add(worldFactory.createPlatformComponent(demoWorld));
 
         // Add the objects to the engine
         engine.addEntity(demoWorld);
         engine.addEntity(player);
+        engine.addEntity(platform);
 
 //        // Add a player
 //        playerSystem = new PlayerSystem(testWorld.world, camera);

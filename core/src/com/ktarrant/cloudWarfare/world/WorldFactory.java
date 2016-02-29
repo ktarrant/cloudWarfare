@@ -48,7 +48,8 @@ public class WorldFactory {
 //        demoPlatformFixtureDef.friction = 1.0f;
     }
 
-    public BodyComponent createPlatformComponent(World world) {
+    public BodyComponent createPlatformComponent(Entity worldEntity) {
+        WorldComponent worldComp = worldEntity.getComponent(WorldComponent.class);
         BodyComponent bodyComp = new BodyComponent();
 
         // Use the static body and fixture defs
@@ -56,7 +57,7 @@ public class WorldFactory {
         bodyComp.fixtureDef = demoPlatformFixtureDef;
 
         // Create the body and the fixture using the world
-        bodyComp.body = world.createBody(bodyComp.bodyDef);
+        bodyComp.body = worldComp.world.createBody(bodyComp.bodyDef);
         bodyComp.fixture = bodyComp.body.createFixture(demoPlatformFixtureDef);
 
         return bodyComp;
