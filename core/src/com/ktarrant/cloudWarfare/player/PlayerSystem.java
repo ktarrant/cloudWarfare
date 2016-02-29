@@ -1,8 +1,12 @@
 package com.ktarrant.cloudWarfare.player;
 
+import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -13,10 +17,13 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
+import com.ktarrant.cloudWarfare.SystemPriority;
 import com.ktarrant.cloudWarfare.action.ActionSystem;
 import com.ktarrant.cloudWarfare.action.ActionComponent;
 import com.ktarrant.cloudWarfare.action.ActionDefLoader;
 import com.ktarrant.cloudWarfare.action.ActionModifierComponent;
+import com.ktarrant.cloudWarfare.world.BodyComponent;
+import com.ktarrant.cloudWarfare.world.CameraComponent;
 
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -36,7 +43,49 @@ import java.util.concurrent.ArrayBlockingQueue;
  *
  * Created by ktarrant1 on 12/27/15.
  */
-public class PlayerSystem { // } extends IteratingSystem {
+public class PlayerSystem extends IteratingSystem {
+    private ComponentMapper<PlayerComponent> playerMapper =
+            ComponentMapper.getFor(PlayerComponent.class);
+    private ComponentMapper<PlayerStateComponent> stateMapper =
+            ComponentMapper.getFor(PlayerStateComponent.class);
+    private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
+    private ComponentMapper<CameraComponent> cameraMapper =
+            ComponentMapper.getFor(CameraComponent.class);
+
+    private Entity activePlayer;
+
+    public PlayerSystem() {
+        super(Family.all(
+                PlayerComponent.class,
+                BodyComponent.class,
+                PlayerStateComponent.class).get(),
+                SystemPriority.PLAYER.getPriorityValue());
+    }
+
+    public void addedToEngine(Engine engine) {
+        super.addedToEngine(engine);
+        // Reset the active player
+        activePlayer = null;
+    }
+
+    @Override
+    protected void processEntity(Entity entity, float deltaTime) {
+        // If we don't have an active player, use the first one we get
+        if (activePlayer == null) {
+            activePlayer = entity;
+        }
+
+        // Handle updates specific to the active player
+        if (activePlayer == entity) {
+            // Update the camera to be centered on the active player
+            BodyComponent bodyComp = bodyMapper.get(entity);
+            PlayerComponent playerComp = playerMapper.get(entity);
+            CameraComponent cameraComp = cameraMapper.get(playerComp.worldEntity);
+            Camera camera = cameraComp.camera;
+            camera.position.set(bodyComp.body.getPosition(), 0);
+            camera.update();
+        }
+    }
 //    public static final Vector2 DEFAULT_START_POS = new Vector2(0.0f, 10.0f);
 //    public static final int MAX_CONCURRENT_ACTIONS = 16;
 //

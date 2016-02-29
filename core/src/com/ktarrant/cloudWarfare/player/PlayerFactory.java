@@ -1,16 +1,12 @@
 package com.ktarrant.cloudWarfare.player;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.utils.Array;
 import com.ktarrant.cloudWarfare.world.BodyComponent;
-import com.ktarrant.cloudWarfare.world.WorldSystem;
-
-import java.util.ArrayList;
+import com.ktarrant.cloudWarfare.world.WorldComponent;
 
 /**
  * Created by ktarrant1 on 12/27/15.
@@ -75,17 +71,19 @@ public class PlayerFactory {
         return stateComp;
     }
 
-    public static PlayerStaminaComponent createPlayerStaminaComponent() {
-        PlayerStaminaComponent staminaComponent = new PlayerStaminaComponent();
-        staminaComponent.maxStamina = DEFAULT_MAX_STAMINA;
-        staminaComponent.stamina = staminaComponent.maxStamina;
-        return staminaComponent;
+    public static PlayerComponent createPlayerComponent(Entity worldEntity) {
+        PlayerComponent playerComponent = new PlayerComponent();
+        playerComponent.maxStamina = DEFAULT_MAX_STAMINA;
+        playerComponent.stamina = playerComponent.maxStamina;
+        playerComponent.worldEntity = worldEntity;
+        return playerComponent;
     }
 
-    public static Entity createPlayerEntity(World world) {
+    public static Entity createPlayerEntity(Entity worldEntity) {
+        WorldComponent worldComp = worldEntity.getComponent(WorldComponent.class);
         Entity entity = new Entity();
-        entity.add(createPlayerBodyComponent(world));
-        entity.add(createPlayerStaminaComponent());
+        entity.add(createPlayerBodyComponent(worldComp.world));
+        entity.add(createPlayerComponent(worldEntity));
         entity.add(createPlayerStateComponent());
         return entity;
     }

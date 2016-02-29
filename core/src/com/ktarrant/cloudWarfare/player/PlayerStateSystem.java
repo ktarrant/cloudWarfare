@@ -5,25 +5,26 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.utils.Array;
+import com.ktarrant.cloudWarfare.SystemPriority;
 import com.ktarrant.cloudWarfare.world.BodyComponent;
 
 /**
  * Created by Kevin on 2/28/2016.
  */
 public class PlayerStateSystem extends IteratingSystem {
-    private ComponentMapper<PlayerStaminaComponent> staminaMapper =
-            ComponentMapper.getFor(PlayerStaminaComponent.class);
+    private ComponentMapper<PlayerComponent> staminaMapper =
+            ComponentMapper.getFor(PlayerComponent.class);
     private ComponentMapper<PlayerStateComponent> stateMapper =
             ComponentMapper.getFor(PlayerStateComponent.class);
     private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
 
     public PlayerStateSystem() {
         super(Family.all(
-                PlayerStaminaComponent.class,
+                PlayerComponent.class,
                 PlayerStateComponent.class,
-                BodyComponent.class).get());
+                BodyComponent.class).get(),
+                SystemPriority.PLAYER_STATE.getPriorityValue());
     }
 
     /** TODO: Change this so it actually figures out which entity is the floor entity. */
@@ -37,7 +38,7 @@ public class PlayerStateSystem extends IteratingSystem {
 
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
-        PlayerStaminaComponent staminaComp = staminaMapper.get(entity);
+        PlayerComponent staminaComp = staminaMapper.get(entity);
         PlayerStateComponent stateComp = stateMapper.get(entity);
         BodyComponent bodyComp = bodyMapper.get(entity);
 

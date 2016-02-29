@@ -7,13 +7,17 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.physics.box2d.*;
+import com.ktarrant.cloudWarfare.player.PlayerFactory;
+import com.ktarrant.cloudWarfare.player.PlayerSystem;
 import com.ktarrant.cloudWarfare.world.ContactSystem;
 import com.ktarrant.cloudWarfare.world.DebugRendererSystem;
+import com.ktarrant.cloudWarfare.world.WorldComponent;
 import com.ktarrant.cloudWarfare.world.WorldFactory;
 import com.ktarrant.cloudWarfare.world.WorldSystem;
 
 public class MainGdxGame extends ApplicationAdapter {
     WorldFactory worldFactory;
+    PlayerFactory playerFactory;
 //    PlayerSystem playerSystem;
 //    TestInputProcessor inputProc;
     InputMultiplexer multiplexer;
@@ -26,13 +30,20 @@ public class MainGdxGame extends ApplicationAdapter {
 
         // Set up Ashley's Engine and Systems
         this.engine = new Engine();
+        this.engine.addSystem(new PlayerSystem());
         this.engine.addSystem(new WorldSystem());
         this.engine.addSystem(new ContactSystem());
         this.engine.addSystem(new DebugRendererSystem());
 
         // Create some demo objects to play with
         worldFactory = new WorldFactory();
+        playerFactory = new PlayerFactory();
         Entity demoWorld = worldFactory.createDemoWorld();
+        Entity player = playerFactory.createPlayerEntity(demoWorld);
+
+        // Add the objects to the engine
+        engine.addEntity(demoWorld);
+        engine.addEntity(player);
 
 //        // Add a player
 //        playerSystem = new PlayerSystem(testWorld.world, camera);
@@ -63,17 +74,10 @@ public class MainGdxGame extends ApplicationAdapter {
 
         // Update the Ashley engine. This will automatically update the Box2D world.
         this.engine.update(Gdx.graphics.getDeltaTime());
-
-//        // Draw the players
-//        camera.position.set(playerSystem.getActivePosition(), 0);
-//        camera.update();
-//        playerSystem.drawDebug(playerRenderer);
     }
 
     @Override
     public void dispose() {
-//        playerSystem.dispose();
-
         worldFactory.dispose();
     }
 }

@@ -39,6 +39,9 @@ public class DebugRendererSystem extends IteratingSystem {
         World world = worldMapper.get(entity).world;
         Camera camera = cameraMapper.get(entity).camera;
 
+        // Set the camera to center on the current player
+//        camera.position.set(playerSystem.getActivePosition(), 0);
+//        camera.update();
         this.debugRenderer.render(world, camera.combined);
     }
 }

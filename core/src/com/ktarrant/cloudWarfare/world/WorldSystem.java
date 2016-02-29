@@ -16,6 +16,7 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
+import com.ktarrant.cloudWarfare.SystemPriority;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +34,8 @@ public class WorldSystem extends IteratingSystem {
     private float accumulator;
 
     public WorldSystem() {
-        super(Family.all(WorldComponent.class).get());
+        super(Family.all(WorldComponent.class).get(),
+                SystemPriority.WORLD.getPriorityValue());
     }
 
     public void addedToEngine(Engine engine) {

@@ -14,6 +14,7 @@ import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
+import com.ktarrant.cloudWarfare.SystemPriority;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +28,7 @@ public class ContactSystem extends EntitySystem implements ContactListener, Enti
     private ComponentMapper<WorldComponent> worldMapper = ComponentMapper.getFor(WorldComponent.class);
 
     public ContactSystem() {
+        super(SystemPriority.CONTACT.getPriorityValue());
         this.entityMap = new HashMap<Fixture, Entity>();
     }
 
