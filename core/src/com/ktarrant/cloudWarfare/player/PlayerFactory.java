@@ -39,13 +39,8 @@ public class PlayerFactory {
 //        playerFixtureDef.restitution = 0.6f; // Make it bounce a little bit
     }
 
-    //    AIR_ACTIVE      ('A', false, 0.15f, 0.0f, true,  1.0f),
-    //    AIR_INACTIVE    ('I', false, 0.15f, 0.0f, false, 1.0f),
-    //    FOOT_ACTIVE     ('F', true,  0.65f, 1.0f, true,  10.0f),
-    //    FOOT_INACTIVE   ('L', true,  0.65f, 1.0f, false, 5.0f);
-    // newBodyComponent.setState(PlayerStateComponent.AIR_ACTIVE);
-
-    public static BodyComponent createPlayerBodyComponent(World world) {
+    public static BodyComponent createPlayerBodyComponent(Entity worldEntity) {
+        WorldComponent worldComp = worldEntity.getComponent(WorldComponent.class);
         BodyComponent newBodyComponent = new BodyComponent();
 
         newBodyComponent.bodyDef = playerBodyDef;
@@ -53,41 +48,28 @@ public class PlayerFactory {
         newBodyComponent.fixtureDef = playerFixtureDef;
 
         // Create our body in the world using our body definition
-        newBodyComponent.body = world.createBody(newBodyComponent.bodyDef);
+        newBodyComponent.body = worldComp.world.createBody(newBodyComponent.bodyDef);
         // Create our fixture and attach it to the body
         newBodyComponent.fixture = newBodyComponent.body.createFixture(newBodyComponent.fixtureDef);
+
+        newBodyComponent.worldEntity = worldEntity;
 
         return newBodyComponent;
     }
 
-    public static PlayerStateComponent createPlayerStateComponent() {
-        PlayerStateComponent stateComp = new PlayerStateComponent();
-
-        // Select AIR_ACTIVE for now
-        stateComp.stateIcon = 'A';
-        stateComp.isOnFoot = false;
-        stateComp.linearDamping = 0.15f;
-        stateComp.angularDamping = 0.0f;
-        stateComp.isFixedRotation = true;
-        stateComp.staminaRegenRate = 1.0f;
-
-        return stateComp;
-    }
-
-    public static PlayerComponent createPlayerComponent(Entity worldEntity) {
+    public static PlayerComponent createPlayerComponent() {
         PlayerComponent playerComponent = new PlayerComponent();
         playerComponent.maxStamina = DEFAULT_MAX_STAMINA;
         playerComponent.stamina = playerComponent.maxStamina;
-        playerComponent.worldEntity = worldEntity;
         return playerComponent;
     }
 
     public static Entity createPlayerEntity(Entity worldEntity) {
         WorldComponent worldComp = worldEntity.getComponent(WorldComponent.class);
         Entity entity = new Entity();
-        entity.add(createPlayerBodyComponent(worldComp.world));
-        entity.add(createPlayerComponent(worldEntity));
-        entity.add(createPlayerStateComponent());
+        entity.add(createPlayerBodyComponent(worldEntity));
+        entity.add(createPlayerComponent());
+        entity.add(PlayerStateComponent.AIR_ACTIVE);
         return entity;
     }
 }

@@ -19,4 +19,5 @@ public class BodyComponent implements Component {
     public Body body = null;
     public Fixture fixture = null;
     public Array<Entity> contactBodies = new Array<Entity>();
+    public Entity worldEntity;
 }

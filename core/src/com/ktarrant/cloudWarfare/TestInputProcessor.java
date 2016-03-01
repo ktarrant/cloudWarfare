@@ -1,15 +1,5 @@
 package com.ktarrant.cloudWarfare;
 
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
-import com.ktarrant.cloudWarfare.action.ActionModifierComponent;
-import com.ktarrant.cloudWarfare.player.PlayerSystem;
-
-import java.util.HashMap;
-
 /**
  * Created by Kevin on 1/17/2016.
  */

@@ -6,9 +6,9 @@ package com.ktarrant.cloudWarfare;
 public enum SystemPriority {
     // Lower priority means it gets executed first
     WORLD           (0),
-    CONTACT         (1),
+    BODY            (1),
     PLAYER_STATE    (2),
-    PLAYER          (3),
+    TOUCH           (3),
     ACTION          (4),
     RENDER          (5);
 

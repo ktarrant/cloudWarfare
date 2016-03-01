@@ -4,17 +4,17 @@ import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
-import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.ashley.utils.ImmutableArray;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
-import com.badlogic.gdx.physics.box2d.World;
 import com.ktarrant.cloudWarfare.SystemPriority;
+import com.ktarrant.cloudWarfare.player.PlayerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,17 +22,20 @@ import java.util.Map;
 /**
  * Created by Kevin on 2/28/2016.
  */
-public class ContactSystem extends EntitySystem implements ContactListener, EntityListener {
+public class BodySystem extends IteratingSystem implements ContactListener, EntityListener {
     private HashMap<Fixture, Entity> entityMap;
     private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
     private ComponentMapper<WorldComponent> worldMapper = ComponentMapper.getFor(WorldComponent.class);
+    private ComponentMapper<BoundsComponent> boundsMapper = ComponentMapper.getFor(BoundsComponent.class);
 
-    public ContactSystem() {
-        super(SystemPriority.CONTACT.getPriorityValue());
+    public BodySystem() {
+        super(Family.all(BodyComponent.class).get(),
+                SystemPriority.BODY.getPriorityValue());
         this.entityMap = new HashMap<Fixture, Entity>();
     }
 
     public void addedToEngine(Engine engine) {
+        super.addedToEngine(engine);
         // Register ourselves with all worlds we can find
         ImmutableArray<Entity> worldEntities = engine.getEntitiesFor(Family.all(
                 WorldComponent.class).get());
@@ -54,6 +57,7 @@ public class ContactSystem extends EntitySystem implements ContactListener, Enti
     }
 
     public void removedFromEngine(Engine engine) {
+        super.removedFromEngine(engine);
         // Stop listening for new entities
         engine.removeEntityListener(this);
 
@@ -67,6 +71,21 @@ public class ContactSystem extends EntitySystem implements ContactListener, Enti
 
         // Clear our hash map
         entityMap.clear();
+    }
+
+    @Override
+    protected void processEntity(Entity entity, float deltaTime) {
+        // Check if this entity has fallen off the bounds
+        BodyComponent bodyComp = bodyMapper.get(entity);
+        BoundsComponent boundsComp = boundsMapper.get(bodyComp.worldEntity);
+        Body playerBody = bodyComp.body;
+        if (!boundsComp.bounds.contains(playerBody.getPosition())) {
+            // Reset the playerComponent and put them back in the start position
+            // TODO: We need to tell the player that they just died.
+            playerBody.setAngularVelocity(0.0f);
+            playerBody.setLinearVelocity(0.0f, 0.0f);
+            playerBody.setTransform(PlayerFactory.DEFAULT_START_POS, 0.0f);
+        }
     }
 
     public void entityAdded (Entity entity) {

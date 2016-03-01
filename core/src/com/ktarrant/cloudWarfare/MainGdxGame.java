@@ -7,12 +7,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.physics.box2d.*;
+import com.ktarrant.cloudWarfare.action.ActionSystem;
+import com.ktarrant.cloudWarfare.input.TouchSystem;
 import com.ktarrant.cloudWarfare.player.PlayerFactory;
 import com.ktarrant.cloudWarfare.player.PlayerStateSystem;
-import com.ktarrant.cloudWarfare.player.PlayerSystem;
-import com.ktarrant.cloudWarfare.world.ContactSystem;
+import com.ktarrant.cloudWarfare.world.BodySystem;
 import com.ktarrant.cloudWarfare.world.DebugRendererSystem;
-import com.ktarrant.cloudWarfare.world.WorldComponent;
 import com.ktarrant.cloudWarfare.world.WorldFactory;
 import com.ktarrant.cloudWarfare.world.WorldSystem;
 
@@ -31,13 +31,13 @@ public class MainGdxGame extends ApplicationAdapter {
 
         // Set up Ashley's Engine and Systems
         this.engine = new Engine();
-        this.engine.addSystem(new WorldSystem());       // PR. 0
-        this.engine.addSystem(new ContactSystem());     // PR. 1
-        this.engine.addSystem(new PlayerStateSystem()); // PR. 2
-        this.engine.addSystem(new PlayerSystem());      // PR. 3
-//        this.engine.addSystem(new ActionSystem());      // PR. 4
-
-        this.engine.addSystem(new DebugRendererSystem());
+        this.engine.addSystem(new WorldSystem());           // PR. 0
+        this.engine.addSystem(new BodySystem());            // PR. 1
+        this.engine.addSystem(new PlayerStateSystem());     // PR. 2
+        TouchSystem touchSystem = new TouchSystem();
+        this.engine.addSystem(touchSystem);                 // PR. 3
+        this.engine.addSystem(new ActionSystem());          // PR. 4
+        this.engine.addSystem(new DebugRendererSystem());   // PR. 5
 
         // Create some demo objects to play with
         worldFactory = new WorldFactory();
@@ -51,6 +51,8 @@ public class MainGdxGame extends ApplicationAdapter {
         engine.addEntity(demoWorld);
         engine.addEntity(player);
         engine.addEntity(platform);
+
+        Gdx.input.setInputProcessor(touchSystem);
 
 //        // Add a player
 //        playerSystem = new PlayerSystem(testWorld.world, camera);

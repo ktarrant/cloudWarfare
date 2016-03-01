@@ -60,6 +60,9 @@ public class WorldFactory {
         bodyComp.body = worldComp.world.createBody(bodyComp.bodyDef);
         bodyComp.fixture = bodyComp.body.createFixture(demoPlatformFixtureDef);
 
+        // Keep a reference to the parent world
+        bodyComp.worldEntity = worldEntity;
+
         return bodyComp;
     }
 
