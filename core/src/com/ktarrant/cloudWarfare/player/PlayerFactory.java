@@ -8,12 +8,14 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 import com.ktarrant.cloudWarfare.world.BodyComponent;
 import com.ktarrant.cloudWarfare.world.WorldComponent;
+import com.ktarrant.cloudWarfare.world.WorldFactory;
 
 /**
  * Created by ktarrant1 on 12/27/15.
  */
 public class PlayerFactory {
-    public static final Vector2 DEFAULT_START_POS = new Vector2(0.0f, 10.0f);
+    public static final Vector2 DEFAULT_START_POS =
+            new Vector2(0.0f, WorldFactory.PLATFORM_POS_Y + 10.0f);
     public static final float DEFAULT_MAX_STAMINA = 1.0f;
     public static final BodyDef playerBodyDef;
     static {

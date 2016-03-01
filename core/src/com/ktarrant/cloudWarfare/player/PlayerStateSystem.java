@@ -28,7 +28,7 @@ public class PlayerStateSystem extends IteratingSystem {
     }
 
     /** TODO: Change this so it actually figures out which entity is the floor entity. */
-    private static Entity getFloorBody(Array<Entity> contactBodies) {
+    private static Entity getFloorEntity(Array<Entity> contactBodies) {
         if (contactBodies == null || contactBodies.size == 0) {
             return null;
         } else {
@@ -42,12 +42,37 @@ public class PlayerStateSystem extends IteratingSystem {
         PlayerStateComponent stateComp = stateMapper.get(entity);
         BodyComponent bodyComp = bodyMapper.get(entity);
 
+        // Compute which state we are now in
+        Entity floorEntity = getFloorEntity(bodyComp.contactBodies);
+        if (floorEntity == null) {
+            // We are currently in the air
+            if (stateComp.isOnFoot) {
+                // The current state is on foot. Need to change it to in air
+                entity.remove(PlayerStateComponent.class);
+                entity.add(PlayerStateComponent.AIR_ACTIVE);
+            } else {
+                // Nothing to do here.
+                // TODO: Account for active/inactive?
+                return;
+            }
+        } else {
+            // We are on a platform
+            if (!stateComp.isOnFoot) {
+                // The current state is on foot. Need to change it to in air
+                entity.remove(PlayerStateComponent.class);
+                entity.add(PlayerStateComponent.FOOT_ACTIVE);
+            } else {
+                // Nothing to do here.
+                // TODO: Account for active/inactive?
+                return;
+            }
+        }
+
         // Update any properties we can regardless of state
         bodyComp.body.setFixedRotation(stateComp.isFixedRotation);
         bodyComp.body.setAngularDamping(stateComp.angularDamping);
 
         if (stateComp.isOnFoot) {
-            Entity floorEntity = getFloorBody(bodyComp.contactBodies);
             BodyComponent floorBody = bodyMapper.get(floorEntity);
             bodyComp.body.setLinearDamping(
                     stateComp.linearDamping * floorBody.body.getLinearDamping());

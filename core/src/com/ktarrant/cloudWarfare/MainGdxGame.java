@@ -10,6 +10,7 @@ import com.badlogic.gdx.physics.box2d.*;
 import com.ktarrant.cloudWarfare.action.ActionSystem;
 import com.ktarrant.cloudWarfare.input.TouchSystem;
 import com.ktarrant.cloudWarfare.player.PlayerFactory;
+import com.ktarrant.cloudWarfare.player.PlayerRendererSystem;
 import com.ktarrant.cloudWarfare.player.PlayerStateSystem;
 import com.ktarrant.cloudWarfare.world.BodySystem;
 import com.ktarrant.cloudWarfare.world.DebugRendererSystem;
@@ -38,6 +39,7 @@ public class MainGdxGame extends ApplicationAdapter {
         this.engine.addSystem(touchSystem);                 // PR. 3
         this.engine.addSystem(new ActionSystem());          // PR. 4
         this.engine.addSystem(new DebugRendererSystem());   // PR. 5
+        this.engine.addSystem(new PlayerRendererSystem());  // PR. 6
 
         // Create some demo objects to play with
         worldFactory = new WorldFactory();
@@ -67,7 +69,7 @@ public class MainGdxGame extends ApplicationAdapter {
 //        BitmapFont fontSmall = fontGen.createFont(exoFile, "exo-small", 6);
 //
 //        // Create a renderer that draws the current player
-//        playerRenderer = new PlayerRenderer(fontSmall);
+//        playerRenderer = new PlayerRendererSystem(fontSmall);
 
 //        // Set up the control processing
 //        inputProc = new TestInputProcessor(camera, playerSystem);

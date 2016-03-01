@@ -10,7 +10,8 @@ public enum SystemPriority {
     PLAYER_STATE    (2),
     TOUCH           (3),
     ACTION          (4),
-    RENDER          (5);
+    WORLD_RENDER    (5),
+    PLAYER_RENDER   (6);
 
     int priorityValue;
 

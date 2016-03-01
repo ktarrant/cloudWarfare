@@ -20,31 +20,32 @@ import com.badlogic.gdx.utils.Array;
  * Created by ktarrant1 on 12/20/15.
  */
 public class WorldFactory {
-    private static final float MAP_WIDTH = 50.0f;
-    private static final float MAP_HEIGHT = 50.0f;
-    private static final float MAP_KILL_MARGIN = 50.0f;
-    private static final float MIN_VIEW_WIDTH = 25.0f;
-    private static final float PLATFORM_WIDTH = 30.0f;
-
-    public static final BodyDef demoPlatformBodyDef;
+    public static final float MAP_WIDTH = 50.0f;
+    public static final float MAP_HEIGHT = 50.0f;
+    public static final float MAP_KILL_MARGIN = 50.0f;
+    public static final float MIN_VIEW_WIDTH = 25.0f;
+    public static final float PLATFORM_WIDTH = 30.0f;
+    public static final float PLATFORM_POS_Y = 10.0f;
+    private static final BodyDef demoPlatformBodyDef;
     static {
         demoPlatformBodyDef = new BodyDef();
         // Set its world position
-        demoPlatformBodyDef.position.set(new Vector2(0, 0));
+        demoPlatformBodyDef.position.set(
+                new Vector2(-PLATFORM_WIDTH/2.0f, PLATFORM_POS_Y));
         // Give it some linear dampening - will be transferred to players that land on it
         demoPlatformBodyDef.linearDamping = 1.0f;
     }
-    public static final PolygonShape polygonShape;
+    private static final PolygonShape polygonShape;
     static {
         polygonShape = new PolygonShape();
         polygonShape.setAsBox(PLATFORM_WIDTH, 1.0f);
     }
-    public static final FixtureDef demoPlatformFixtureDef;
+    private static final FixtureDef demoPlatformFixtureDef;
     static {
         // Create a fixture definition to apply our shape to
         demoPlatformFixtureDef = new FixtureDef();
         demoPlatformFixtureDef.shape = polygonShape;
-//        demoPlatformFixtureDef.density = 0.2f;
+        demoPlatformFixtureDef.density = 0.2f;
 //        demoPlatformFixtureDef.friction = 1.0f;
     }
 

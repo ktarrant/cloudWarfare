@@ -23,7 +23,7 @@ public class DebugRendererSystem extends IteratingSystem {
 
     public DebugRendererSystem() {
         super(Family.all(WorldComponent.class, CameraComponent.class).get(),
-                SystemPriority.RENDER.getPriorityValue());
+                SystemPriority.WORLD_RENDER.getPriorityValue());
 
         // Create a renderer that annotates the objects
         this.debugRenderer = new Box2DDebugRenderer(
