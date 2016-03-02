@@ -10,10 +10,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.utils.Array;
 import com.ktarrant.cloudWarfare.SystemPriority;
 import com.ktarrant.cloudWarfare.action.ActionComponent;
 import com.ktarrant.cloudWarfare.action.ActionModifierComponent;
@@ -50,8 +47,6 @@ public class PlayerRendererSystem extends IteratingSystem {
             ComponentMapper.getFor(ActionComponent.class);
     private ComponentMapper<ActionModifierComponent> actionModMapper =
             ComponentMapper.getFor(ActionModifierComponent.class);
-    private ComponentMapper<PlayerStateComponent> stateMapper =
-            ComponentMapper.getFor(PlayerStateComponent.class);
     private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
     private ComponentMapper<CameraComponent> cameraMapper =
             ComponentMapper.getFor(CameraComponent.class);
@@ -64,7 +59,6 @@ public class PlayerRendererSystem extends IteratingSystem {
     public PlayerRendererSystem() {
         super(Family.all(
                 PlayerComponent.class,
-                PlayerStateComponent.class,
                 BodyComponent.class).get(),
                 SystemPriority.PLAYER_RENDER.getPriorityValue());
 
@@ -88,7 +82,7 @@ public class PlayerRendererSystem extends IteratingSystem {
         textBatch.setProjectionMatrix(camera.combined);
 
         // Draw the player state
-        PlayerStateComponent stateComp = stateMapper.get(entity);
+        PlayerState stateComp = playerMapper.get(entity).state;
         drawPlayerState(bodyComp, stateComp);
 
         // Update and draw the environmental data
@@ -146,7 +140,7 @@ public class PlayerRendererSystem extends IteratingSystem {
         textBatch.end();
     }
 
-    public void drawPlayerState(BodyComponent bodyComp, PlayerStateComponent stateComp) {
+    public void drawPlayerState(BodyComponent bodyComp, PlayerState stateComp) {
         float fontScale = bodyComp.fixture.getShape().getRadius()/12.0f;
         font.getData().setScale(fontScale);
         textBatch.begin();

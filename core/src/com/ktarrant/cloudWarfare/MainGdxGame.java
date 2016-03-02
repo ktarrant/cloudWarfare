@@ -12,6 +12,7 @@ import com.ktarrant.cloudWarfare.input.TouchSystem;
 import com.ktarrant.cloudWarfare.player.PlayerFactory;
 import com.ktarrant.cloudWarfare.player.PlayerRendererSystem;
 import com.ktarrant.cloudWarfare.player.PlayerStateSystem;
+import com.ktarrant.cloudWarfare.world.BodyComponent;
 import com.ktarrant.cloudWarfare.world.BodySystem;
 import com.ktarrant.cloudWarfare.world.DebugRendererSystem;
 import com.ktarrant.cloudWarfare.world.WorldFactory;
@@ -47,7 +48,9 @@ public class MainGdxGame extends ApplicationAdapter {
         Entity demoWorld = worldFactory.createDemoWorld();
         Entity player = playerFactory.createPlayerEntity(demoWorld);
         Entity platform = new Entity();
-        platform.add(worldFactory.createPlatformComponent(demoWorld));
+        // HACK: To help me out in the BodySystem, give Fixture reference to Entity
+        BodyComponent bodyComponent = worldFactory.createPlatformComponent(demoWorld);
+        platform.add(bodyComponent);
 
         // Add the objects to the engine
         engine.addEntity(demoWorld);

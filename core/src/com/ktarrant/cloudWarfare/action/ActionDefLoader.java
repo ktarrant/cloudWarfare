@@ -3,7 +3,7 @@ package com.ktarrant.cloudWarfare.action;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
-import com.ktarrant.cloudWarfare.player.PlayerStateComponent;
+import com.ktarrant.cloudWarfare.player.PlayerState;
 
 import java.util.HashMap;
 
@@ -79,26 +79,26 @@ public class ActionDefLoader {
         ACTION_DEF_LIST_NORMAL_FOOT.add(ACTION_DEF_RUN_LEFT);
         ACTION_DEF_LIST_NORMAL_FOOT.add(ACTION_DEF_RUN_RIGHT);
     }
-    private static final HashMap<ActionModifierComponent, HashMap<PlayerStateComponent, Array<ActionDef>>> actionDefMap;
+    private static final HashMap<ActionModifierComponent, HashMap<PlayerState, Array<ActionDef>>> actionDefMap;
     static {
-        actionDefMap = new HashMap<ActionModifierComponent, HashMap<PlayerStateComponent, Array<ActionDef>>>();
-        HashMap<PlayerStateComponent, Array<ActionDef>> normalMap =
-                new HashMap<PlayerStateComponent, Array<ActionDef>>();
-        HashMap<PlayerStateComponent, Array<ActionDef>> attackMap =
-                new HashMap<PlayerStateComponent, Array<ActionDef>>();
+        actionDefMap = new HashMap<ActionModifierComponent, HashMap<PlayerState, Array<ActionDef>>>();
+        HashMap<PlayerState, Array<ActionDef>> normalMap =
+                new HashMap<PlayerState, Array<ActionDef>>();
+        HashMap<PlayerState, Array<ActionDef>> attackMap =
+                new HashMap<PlayerState, Array<ActionDef>>();
         actionDefMap.put(ActionModifierComponent.NORMAL, normalMap);
         actionDefMap.put(ActionModifierComponent.ATTACK, attackMap);
 
-        normalMap.put(PlayerStateComponent.AIR_ACTIVE, ACTION_DEF_LIST_NORMAL_AIR);
-        normalMap.put(PlayerStateComponent.FOOT_ACTIVE, ACTION_DEF_LIST_NORMAL_FOOT);
+        normalMap.put(PlayerState.AIR_ACTIVE, ACTION_DEF_LIST_NORMAL_AIR);
+        normalMap.put(PlayerState.FOOT_ACTIVE, ACTION_DEF_LIST_NORMAL_FOOT);
         // TODO: Add ActionDef lists for ATTACK state
     }
 
     public static ActionComponent getActionComponent(
             ActionModifierComponent modifier,
-            PlayerStateComponent state) {
+            PlayerState state) {
 
-        HashMap<PlayerStateComponent, Array<ActionDef>> modifierResult = actionDefMap.get(modifier);
+        HashMap<PlayerState, Array<ActionDef>> modifierResult = actionDefMap.get(modifier);
         Array<ActionDef> match = ACTION_DEF_LIST_NULL;
         if (modifierResult != null) {
             Array<ActionDef> stateResult = modifierResult.get(state);

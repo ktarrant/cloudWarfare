@@ -5,7 +5,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.World;
 import com.ktarrant.cloudWarfare.world.BodyComponent;
 import com.ktarrant.cloudWarfare.world.WorldComponent;
 import com.ktarrant.cloudWarfare.world.WorldFactory;
@@ -63,6 +62,7 @@ public class PlayerFactory {
         PlayerComponent playerComponent = new PlayerComponent();
         playerComponent.maxStamina = DEFAULT_MAX_STAMINA;
         playerComponent.stamina = playerComponent.maxStamina;
+        playerComponent.state = PlayerState.AIR_ACTIVE;
         return playerComponent;
     }
 
@@ -71,7 +71,6 @@ public class PlayerFactory {
         Entity entity = new Entity();
         entity.add(createPlayerBodyComponent(worldEntity));
         entity.add(createPlayerComponent());
-        entity.add(PlayerStateComponent.AIR_ACTIVE);
         return entity;
     }
 }

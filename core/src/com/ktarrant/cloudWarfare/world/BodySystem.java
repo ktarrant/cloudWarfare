@@ -22,62 +22,88 @@ import java.util.Map;
 /**
  * Created by Kevin on 2/28/2016.
  */
-public class BodySystem extends IteratingSystem implements ContactListener, EntityListener {
-    private HashMap<Fixture, Entity> entityMap;
+public class BodySystem extends IteratingSystem implements ContactListener {
     private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
     private ComponentMapper<WorldComponent> worldMapper = ComponentMapper.getFor(WorldComponent.class);
     private ComponentMapper<BoundsComponent> boundsMapper = ComponentMapper.getFor(BoundsComponent.class);
 
     public BodySystem() {
-        super(Family.all(BodyComponent.class).get(),
-                SystemPriority.BODY.getPriorityValue());
-        this.entityMap = new HashMap<Fixture, Entity>();
+        super(Family.all(BodyComponent.class).get(), SystemPriority.BODY.getPriorityValue());
     }
+
+    public final EntityListener worldListener = new EntityListener() {
+        @Override
+        public void entityAdded(Entity entity) {
+            registerWorldEntity(entity);
+        }
+
+        @Override
+        public void entityRemoved(Entity entity) {
+            unregisterWorldEntity(entity);
+        }
+    };
+
+    public final EntityListener bodyListener = new EntityListener() {
+        @Override
+        public void entityAdded(Entity entity) {
+            registerBodyEntity(entity);
+        }
+
+        @Override
+        public void entityRemoved(Entity entity) {
+            unregisterBodyEntity(entity);
+        }
+    };
 
     public void addedToEngine(Engine engine) {
         super.addedToEngine(engine);
-        // Register ourselves with all worlds we can find
-        ImmutableArray<Entity> worldEntities = engine.getEntitiesFor(Family.all(
-                WorldComponent.class).get());
+
+        // Register all worlds we can find
+        Family worldFamily = Family.all(WorldComponent.class).get();
+        ImmutableArray<Entity> worldEntities = engine.getEntitiesFor(worldFamily);
         for (Entity worldEntity : worldEntities) {
-            WorldComponent worldComp = worldMapper.get(worldEntity);
-            worldComp.world.setContactListener(this);
+            registerWorldEntity(worldEntity);
         }
+        // Start listening for new worlds
+        engine.addEntityListener(worldFamily, worldListener);
 
-        // Create the Contact HashMap
-        Family family = Family.all(BodyComponent.class).get();
-        ImmutableArray<Entity> bodyEntities = engine.getEntitiesFor(family);
-        for (Entity entity : bodyEntities) {
-            BodyComponent bodyComp = bodyMapper.get(entity);
-            entityMap.put(bodyComp.fixture, entity);
+        // Register all the bodies we can find
+        Family bodyFamily = Family.all(BodyComponent.class).get();
+        ImmutableArray<Entity> bodyEntities = engine.getEntitiesFor(bodyFamily);
+        for (Entity bodyEntity : bodyEntities) {
+            registerBodyEntity(bodyEntity);
         }
-
-        // Start listening for new entities
-        engine.addEntityListener(family, this);
+        // Start listening for new bodies
+        engine.addEntityListener(bodyFamily, bodyListener);
     }
 
     public void removedFromEngine(Engine engine) {
         super.removedFromEngine(engine);
         // Stop listening for new entities
-        engine.removeEntityListener(this);
+        engine.removeEntityListener(worldListener);
+        engine.removeEntityListener(bodyListener);
 
         // Unregister ourselves with all worlds we can find
         ImmutableArray<Entity> worldEntities = engine.getEntitiesFor(Family.all(
                 WorldComponent.class).get());
         for (Entity worldEntity : worldEntities) {
-            WorldComponent worldComp = worldMapper.get(worldEntity);
-            worldComp.world.setContactListener(null);
+            unregisterWorldEntity(worldEntity);
         }
 
-        // Clear our hash map
-        entityMap.clear();
+        // Clean up the fixtures of all the body entities
+        ImmutableArray<Entity> bodyEntities = engine.getEntitiesFor(Family.all(
+                BodyComponent.class).get());
+        for (Entity bodyEntity : bodyEntities) {
+            unregisterWorldEntity(bodyEntity);
+        }
     }
 
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
-        // Check if this entity has fallen off the bounds
         BodyComponent bodyComp = bodyMapper.get(entity);
         BoundsComponent boundsComp = boundsMapper.get(bodyComp.worldEntity);
+
+        // Check if this entity has fallen off the bounds
         Body playerBody = bodyComp.body;
         if (!boundsComp.bounds.contains(playerBody.getPosition())) {
             // Reset the playerComponent and put them back in the start position
@@ -88,26 +114,10 @@ public class BodySystem extends IteratingSystem implements ContactListener, Enti
         }
     }
 
-    public void entityAdded (Entity entity) {
-        BodyComponent bodyComp = bodyMapper.get(entity);
-        entityMap.put(bodyComp.fixture, entity);
-    }
-
-    public void entityRemoved (Entity entity) {
-        BodyComponent bodyComp = bodyMapper.get(entity);
-        entityMap.remove(bodyComp.fixture);
-
-        // Remove this entity from all contact bodies lists
-        for (Map.Entry<Fixture, Entity> entry : entityMap.entrySet()) {
-            BodyComponent comp = bodyMapper.get(entry.getValue());
-            comp.contactBodies.removeValue(entity, false);
-        }
-    }
-
     @Override
     public void beginContact(Contact contact) {
-        Entity entityA = entityMap.get(contact.getFixtureA());
-        Entity entityB = entityMap.get(contact.getFixtureB());
+        Entity entityA = (Entity) contact.getFixtureA().getUserData();
+        Entity entityB = (Entity) contact.getFixtureB().getUserData();
         if (entityA != null && entityB != null) {
             // Both of these entities are managed by us
             bodyMapper.get(entityA).contactBodies.add(entityB);
@@ -117,8 +127,8 @@ public class BodySystem extends IteratingSystem implements ContactListener, Enti
 
     @Override
     public void endContact(Contact contact) {
-        Entity entityA = entityMap.get(contact.getFixtureA());
-        Entity entityB = entityMap.get(contact.getFixtureB());
+        Entity entityA = (Entity) contact.getFixtureA().getUserData();
+        Entity entityB = (Entity) contact.getFixtureB().getUserData();
         if (entityA != null && entityB != null) {
             // Both of these entities are managed by us
             bodyMapper.get(entityA).contactBodies.removeValue(entityB, false);
@@ -134,5 +144,30 @@ public class BodySystem extends IteratingSystem implements ContactListener, Enti
     @Override
     public void postSolve(Contact contact, ContactImpulse impulse) {
 
+    }
+
+    protected void registerWorldEntity(Entity worldEntity) {
+        WorldComponent worldComp = worldMapper.get(worldEntity);
+        worldComp.world.setContactListener(this);
+    }
+
+    protected void unregisterWorldEntity(Entity worldEntity) {
+        WorldComponent worldComp = worldMapper.get(worldEntity);
+        worldComp.world.setContactListener(null);
+    }
+
+    protected void registerBodyEntity(Entity bodyEntity) {
+        BodyComponent bodyComp = bodyMapper.get(bodyEntity);
+        // Use the fixture to get a reference to the entity
+        bodyComp.fixture.setUserData(bodyEntity);
+    }
+
+    protected void unregisterBodyEntity(Entity bodyEntity) {
+        BodyComponent bodyComp = bodyMapper.get(bodyEntity);
+        // Remove this entity from all contact bodies lists
+        for (Entity contactEntity : bodyComp.contactBodies) {
+            BodyComponent comp = bodyMapper.get(contactEntity);
+            comp.contactBodies.removeValue(bodyEntity, false);
+        }
     }
 }

@@ -15,7 +15,7 @@ import com.ktarrant.cloudWarfare.action.ActionComponent;
 import com.ktarrant.cloudWarfare.action.ActionDefLoader;
 import com.ktarrant.cloudWarfare.action.ActionModifierComponent;
 import com.ktarrant.cloudWarfare.player.PlayerComponent;
-import com.ktarrant.cloudWarfare.player.PlayerStateComponent;
+import com.ktarrant.cloudWarfare.player.PlayerState;
 import com.ktarrant.cloudWarfare.world.BodyComponent;
 import com.ktarrant.cloudWarfare.world.CameraComponent;
 
@@ -27,8 +27,6 @@ import java.util.HashMap;
 public class TouchSystem extends IteratingSystem implements InputProcessor {
     private ComponentMapper<PlayerComponent> playerMapper =
             ComponentMapper.getFor(PlayerComponent.class);
-    private ComponentMapper<PlayerStateComponent> stateMapper =
-            ComponentMapper.getFor(PlayerStateComponent.class);
     private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
     private ComponentMapper<CameraComponent> cameraMapper =
             ComponentMapper.getFor(CameraComponent.class);
@@ -43,8 +41,7 @@ public class TouchSystem extends IteratingSystem implements InputProcessor {
     public TouchSystem() {
         super(Family.all(
                 PlayerComponent.class,
-                BodyComponent.class,
-                PlayerStateComponent.class).get(),
+                BodyComponent.class).get(),
         SystemPriority.TOUCH.getPriorityValue());
 
         currentModifier = ActionModifierComponent.NORMAL;
@@ -104,7 +101,6 @@ public class TouchSystem extends IteratingSystem implements InputProcessor {
         }
 
         BodyComponent bodyComp = bodyMapper.get(activePlayer);
-        PlayerStateComponent stateComp = stateMapper.get(activePlayer);
         Camera camera = cameraMapper.get(bodyComp.worldEntity).camera;
 
         // Compute the angles and vectors of the tap relative to the character
@@ -117,7 +113,6 @@ public class TouchSystem extends IteratingSystem implements InputProcessor {
         if (activePlayer == null) {
             return;
         }
-        PlayerStateComponent stateComp = stateMapper.get(activePlayer);
 
         // Create the TouchComponent
         TouchComponent touchComp = new TouchComponent();
@@ -125,16 +120,16 @@ public class TouchSystem extends IteratingSystem implements InputProcessor {
         touchComp.touchedDown = touchdown;
 
         // Create the ActionComponent
+        PlayerComponent playerComp = playerMapper.get(activePlayer);
         ActionComponent actionComp = ActionDefLoader.getActionComponent(
                 currentModifier,
-                stateComp);
+                playerComp.state);
 
         // Create the Action entity
         Entity currentAction= new Entity();
-        currentAction.add(playerMapper.get(activePlayer));
+        currentAction.add(playerComp);
         currentAction.add(actionComp);
         currentAction.add(currentModifier);
-        currentAction.add(stateComp);
         currentAction.add(bodyMapper.get(activePlayer));
         currentAction.add(touchComp);
         this.getEngine().addEntity(currentAction);

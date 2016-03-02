@@ -9,11 +9,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.ktarrant.cloudWarfare.SystemPriority;
 import com.ktarrant.cloudWarfare.input.TouchComponent;
 import com.ktarrant.cloudWarfare.player.PlayerComponent;
-import com.ktarrant.cloudWarfare.player.PlayerStateComponent;
+import com.ktarrant.cloudWarfare.player.PlayerState;
 import com.ktarrant.cloudWarfare.world.BodyComponent;
-import com.ktarrant.cloudWarfare.world.CameraComponent;
-
-import javax.swing.Action;
 
 /**
  * Created by ktarrant1 on 1/3/16.
@@ -26,8 +23,6 @@ public class ActionSystem extends IteratingSystem {
             ComponentMapper.getFor(ActionComponent.class);
     private ComponentMapper<ActionModifierComponent> actionModMapper =
             ComponentMapper.getFor(ActionModifierComponent.class);
-    private ComponentMapper<PlayerStateComponent> stateMapper =
-            ComponentMapper.getFor(PlayerStateComponent.class);
     private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
     private ComponentMapper<TouchComponent> touchMapper =
             ComponentMapper.getFor(TouchComponent.class);
@@ -37,7 +32,6 @@ public class ActionSystem extends IteratingSystem {
                 PlayerComponent.class,
                 ActionComponent.class,
                 ActionModifierComponent.class,
-                PlayerStateComponent.class,
                 BodyComponent.class,
                 TouchComponent.class).get(),
                 SystemPriority.ACTION.getPriorityValue());

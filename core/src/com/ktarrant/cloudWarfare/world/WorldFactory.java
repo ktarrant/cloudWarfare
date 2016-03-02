@@ -22,7 +22,7 @@ import com.badlogic.gdx.utils.Array;
 public class WorldFactory {
     public static final float MAP_WIDTH = 50.0f;
     public static final float MAP_HEIGHT = 50.0f;
-    public static final float MAP_KILL_MARGIN = 50.0f;
+    public static final float MAP_KILL_MARGIN = 25.0f;
     public static final float MIN_VIEW_WIDTH = 25.0f;
     public static final float PLATFORM_WIDTH = 30.0f;
     public static final float PLATFORM_POS_Y = 10.0f;
@@ -59,7 +59,7 @@ public class WorldFactory {
 
         // Create the body and the fixture using the world
         bodyComp.body = worldComp.world.createBody(bodyComp.bodyDef);
-        bodyComp.fixture = bodyComp.body.createFixture(demoPlatformFixtureDef);
+        bodyComp.fixture = bodyComp.body.createFixture(bodyComp.fixtureDef);
 
         // Keep a reference to the parent world
         bodyComp.worldEntity = worldEntity;
@@ -71,8 +71,8 @@ public class WorldFactory {
         BoundsComponent boundsComp = new BoundsComponent();
         boundsComp.bounds.set((-MAP_WIDTH / 2.0f) - MAP_KILL_MARGIN,
                 -MAP_KILL_MARGIN,
-                (MAP_WIDTH / 2.0f) + MAP_KILL_MARGIN,
-                MAP_HEIGHT + MAP_KILL_MARGIN);
+                MAP_WIDTH + (2.0f * MAP_KILL_MARGIN),
+                MAP_HEIGHT + (2.0f * MAP_KILL_MARGIN));
         return boundsComp;
     }
 
