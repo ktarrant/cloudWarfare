@@ -1,5 +1,7 @@
 package com.ktarrant.cloudWarfare.player;
 
+import com.badlogic.ashley.core.Component;
+
 /**
  * Created by ktarrant1 on 1/4/16.
  */
@@ -16,12 +18,9 @@ public enum PlayerState {
     public final boolean isFixedRotation;
     public final float angularDamping;
 
-    private PlayerState(char stateIcon,
-                        boolean isOnFoot,
-                        float staminaRegenRate,
+    private PlayerState(char stateIcon, boolean isOnFoot, float staminaRegenRate,
                         float linearDamping,
-                        boolean isFixedRotation,
-                        float angularDamping) {
+                        boolean isFixedRotation, float angularDamping) {
         this.stateIcon = stateIcon;
         this.isOnFoot = isOnFoot;
         this.staminaRegenRate = staminaRegenRate;
