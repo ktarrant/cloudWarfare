@@ -33,11 +33,7 @@ public class PlayerStateSystem extends IteratingSystem {
         }
     }
 
-    @Override
-    protected void processEntity(Entity entity, float deltaTime) {
-        PlayerComponent playerComp = playerMapper.get(entity);
-        BodyComponent bodyComp = bodyMapper.get(entity);
-
+    private void updateState(PlayerComponent playerComp, BodyComponent bodyComp) {
         // Compute which state we are now in
         Entity floorEntity = getFloorEntity(bodyComp.contactBodies);
         if (floorEntity == null) {
@@ -80,6 +76,15 @@ public class PlayerStateSystem extends IteratingSystem {
             bodyComp.body.setTransform(bodyComp.body.getPosition(),
                     bodyComp.body.getLinearVelocity().x > 0.0f ? 0.0f : MathUtils.PI);
         }
+    }
+
+    @Override
+    protected void processEntity(Entity entity, float deltaTime) {
+        PlayerComponent playerComp = playerMapper.get(entity);
+        BodyComponent bodyComp = bodyMapper.get(entity);
+
+        // Perform a state change if needed
+        updateState(playerComp, bodyComp);
 
         // If the player is on Foot, replenish stamina faster
         playerComp.stamina += playerComp.state.staminaRegenRate * deltaTime;
