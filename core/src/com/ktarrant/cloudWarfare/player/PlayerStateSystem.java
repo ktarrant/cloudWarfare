@@ -1,18 +1,22 @@
 package com.ktarrant.cloudWarfare.player;
 
 import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.ktarrant.cloudWarfare.SystemPriority;
 import com.ktarrant.cloudWarfare.world.BodyComponent;
+import com.ktarrant.cloudWarfare.world.WorldComponent;
 
 /**
  * Created by Kevin on 2/28/2016.
  */
-public class PlayerStateSystem extends IteratingSystem {
+public class PlayerStateSystem extends IteratingSystem implements EntityListener {
     private ComponentMapper<PlayerComponent> playerMapper =
             ComponentMapper.getFor(PlayerComponent.class);
     private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
@@ -33,7 +37,37 @@ public class PlayerStateSystem extends IteratingSystem {
         }
     }
 
-    private void updateState(PlayerComponent playerComp, BodyComponent bodyComp) {
+    public void addedToEngine(Engine engine) {
+        super.addedToEngine(engine);
+
+        // Update all players that we find
+        Family playerFamily = Family.all(PlayerComponent.class, BodyComponent.class).get();
+        ImmutableArray<Entity> playerEntities = engine.getEntitiesFor(playerFamily);
+        for (Entity playerEntity : playerEntities) {
+            updateState(playerMapper.get(playerEntity), bodyMapper.get(playerEntity), true);
+        }
+        // Start listening for new players
+        engine.addEntityListener(playerFamily, this);
+    }
+
+
+    public void removedFromEngine(Engine engine) {
+        super.removedFromEngine(engine);
+        // Stop listening for new entities
+        engine.removeEntityListener(this);
+    }
+
+    @Override
+    public void entityAdded(Entity entity) {
+        updateState(playerMapper.get(entity), bodyMapper.get(entity), true);
+    }
+
+    @Override
+    public void entityRemoved(Entity entity) {
+        // Not needed
+    }
+
+    private void updateState(PlayerComponent playerComp, BodyComponent bodyComp, boolean force) {
         // Compute which state we are now in
         Entity floorEntity = getFloorEntity(bodyComp.contactBodies);
         if (floorEntity == null) {
@@ -44,7 +78,9 @@ public class PlayerStateSystem extends IteratingSystem {
             } else {
                 // Nothing to do here.
                 // TODO: Account for active/inactive?
-                return;
+                if (!force) {
+                    return;
+                }
             }
         } else {
             // We are on a platform
@@ -54,7 +90,9 @@ public class PlayerStateSystem extends IteratingSystem {
             } else {
                 // Nothing to do here.
                 // TODO: Account for active/inactive?
-                return;
+                if (!force) {
+                    return;
+                }
             }
         }
 
@@ -69,13 +107,6 @@ public class PlayerStateSystem extends IteratingSystem {
         } else {
             bodyComp.rootBody.setLinearDamping(playerComp.state.linearDamping);
         }
-
-        // If the player is on Foot and fixed rotation, update which way they are facing.
-        if (playerComp.state.isOnFoot && playerComp.state.isFixedRotation &&
-                bodyComp.rootBody.getLinearVelocity().x != 0.0f) {
-            bodyComp.rootBody.setTransform(bodyComp.rootBody.getPosition(),
-                    bodyComp.rootBody.getLinearVelocity().x > 0.0f ? 0.0f : MathUtils.PI);
-        }
     }
 
     @Override
@@ -84,7 +115,7 @@ public class PlayerStateSystem extends IteratingSystem {
         BodyComponent bodyComp = bodyMapper.get(entity);
 
         // Perform a state change if needed
-        updateState(playerComp, bodyComp);
+        updateState(playerComp, bodyComp, false);
 
         // If the player is on Foot, replenish stamina faster
         playerComp.stamina += playerComp.state.staminaRegenRate * deltaTime;
