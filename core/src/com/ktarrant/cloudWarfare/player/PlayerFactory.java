@@ -125,7 +125,7 @@ public class PlayerFactory {
         PLAYER_ANKLE_JOINT = neckJoint;
     }
 
-    public static BodyComponent createPlayerBodyComponent(Entity worldEntity) {
+    public static BodyComponent createPlayerBodyComponent(Entity playerEntity, Entity worldEntity) {
         WorldComponent worldComp = worldEntity.getComponent(WorldComponent.class);
         BodyComponent newBodyComponent = new BodyComponent(worldEntity);
 
@@ -152,6 +152,8 @@ public class PlayerFactory {
         Body leftFootBody = worldComp.world.createBody(PLAYER_FOOT_BODYDEF);
         // Create our headFixture and attach it to the headBody
         Fixture leftFootFixture = leftFootBody.createFixture(PLAYER_FOOT_FIXTUREDEF);
+        // Set the entity as the UserData to get it detected in ContactListener
+        leftFootFixture.setUserData(playerEntity);
         ((RevoluteJointDef) PLAYER_ANKLE_JOINT).initialize(
                 newBodyComponent.rootBody, leftFootBody, DEFAULT_START_POS);
         // Returns subclass Joint.
@@ -164,6 +166,8 @@ public class PlayerFactory {
         Body rightFootBody = worldComp.world.createBody(PLAYER_FOOT_BODYDEF);
         // Create our headFixture and attach it to the headBody
         Fixture rightFootFixture = rightFootBody.createFixture(PLAYER_FOOT_FIXTUREDEF);
+        // Set the entity as the UserData to get it detected in ContactListener
+        rightFootFixture.setUserData(playerEntity);
         ((RevoluteJointDef) PLAYER_ANKLE_JOINT).initialize(
                 newBodyComponent.rootBody, rightFootBody, DEFAULT_START_POS);
         // Returns subclass Joint.
@@ -183,7 +187,7 @@ public class PlayerFactory {
     public static Entity createPlayerEntity(Entity worldEntity) {
         WorldComponent worldComp = worldEntity.getComponent(WorldComponent.class);
         Entity entity = new Entity();
-        entity.add(createPlayerBodyComponent(worldEntity));
+        entity.add(createPlayerBodyComponent(entity, worldEntity));
         entity.add(createPlayerComponent());
         return entity;
     }
