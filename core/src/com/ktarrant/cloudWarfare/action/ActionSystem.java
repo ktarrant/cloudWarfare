@@ -9,7 +9,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.ktarrant.cloudWarfare.SystemPriority;
 import com.ktarrant.cloudWarfare.input.TouchComponent;
 import com.ktarrant.cloudWarfare.player.PlayerComponent;
-import com.ktarrant.cloudWarfare.player.PlayerState;
 import com.ktarrant.cloudWarfare.world.BodyComponent;
 
 /**
@@ -85,7 +84,7 @@ public class ActionSystem extends IteratingSystem {
                 direction.scl(match.linearImpulseMultiplier);
                 direction.add(match.linearImpulseConstant);
                 direction.scl(playerComp.stamina);
-                bodyComp.body.applyLinearImpulse(direction, Vector2.Zero, true);
+                bodyComp.rootBody.applyLinearImpulse(direction, Vector2.Zero, true);
                 playerComp.stamina = staminaAfter;
             }
         }

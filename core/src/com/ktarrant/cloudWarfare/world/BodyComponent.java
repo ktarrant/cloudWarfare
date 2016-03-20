@@ -13,11 +13,17 @@ import com.badlogic.gdx.utils.Array;
  * Created by Kevin on 2/28/2016.
  */
 public class BodyComponent implements Component {
-    public BodyDef bodyDef = null;
-    public FixtureDef fixtureDef = null;
-    public Shape shape = null;
-    public Body body = null;
-    public Fixture fixture = null;
+    // STATIC REFERENCES
+    public final Entity worldEntity;
+
+    // BOX2D INSTANCE VARIABLES
+    public Body rootBody = null;
+    public Fixture rootFixture = null;
+
+    // STATE VARIABLES
     public Array<Entity> contactBodies = new Array<Entity>();
-    public Entity worldEntity;
+
+    public BodyComponent(Entity worldEntity) {
+        this.worldEntity = worldEntity;
+    }
 }

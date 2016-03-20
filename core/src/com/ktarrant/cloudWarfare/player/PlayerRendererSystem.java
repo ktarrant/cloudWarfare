@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.ktarrant.cloudWarfare.SystemPriority;
 import com.ktarrant.cloudWarfare.action.ActionComponent;
 import com.ktarrant.cloudWarfare.action.ActionModifierComponent;
@@ -90,16 +91,16 @@ public class PlayerRendererSystem extends IteratingSystem {
         updateEnvironmentData("linearDamping", stateComp.linearDamping);
         updateEnvironmentData("staminaRegenRate", stateComp.staminaRegenRate);
 
-        updateEnvironmentData("velX", bodyComp.body.getLinearVelocity().x);
-        updateEnvironmentData("velY", bodyComp.body.getLinearVelocity().y);
+        updateEnvironmentData("velX", bodyComp.rootBody.getLinearVelocity().x);
+        updateEnvironmentData("velY", bodyComp.rootBody.getLinearVelocity().y);
         updateEnvironmentData("contactCount", bodyComp.contactBodies.size);
         drawEnvironmentData(bodyComp);
     }
 
 //    public void drawPlayerControlHelp(PlayerComponent playerComponent, Array<ActionComponent> actionDefList) {
 //        this.set(ShapeType.Filled);
-//        Vector2 playerPos = playerComponent.body.getPosition();
-//        float playerRadius = playerComponent.circleShape.getRadius();
+//        Vector2 playerPos = playerComponent.rootBody.getPosition();
+//        float playerRadius = playerComponent.PLAYER_TORSO_SHAPE.getRadius();
 //        float arcRadius = playerRadius * 4.0f;
 //        int colorIndex = 0;
 //        for (ActionComponent actionComponent : actionDefList) {
@@ -124,9 +125,9 @@ public class PlayerRendererSystem extends IteratingSystem {
     }
 
     private void drawEnvironmentData(BodyComponent bodyComp) {
-        float playerRadius = bodyComp.shape.getRadius();
+        float playerRadius = bodyComp.rootFixture.getShape().getRadius();
         float textRad = playerRadius * 4.0f;
-        Vector2 playerPos = bodyComp.body.getPosition();
+        Vector2 playerPos = bodyComp.rootBody.getPosition();
         int i = 0;
         textBatch.begin();
         for (PlayerDataLabel label : this.envData.values()) {
@@ -141,10 +142,10 @@ public class PlayerRendererSystem extends IteratingSystem {
     }
 
     public void drawPlayerState(BodyComponent bodyComp, PlayerState stateComp) {
-        float fontScale = bodyComp.fixture.getShape().getRadius()/12.0f;
+        float fontScale = bodyComp.rootFixture.getShape().getRadius()/12.0f;
         font.getData().setScale(fontScale);
         textBatch.begin();
-        Vector2 playerPos = bodyComp.body.getPosition();
+        Vector2 playerPos = bodyComp.rootBody.getPosition();
         font.draw(textBatch, String.valueOf(stateComp.stateIcon), playerPos.x, playerPos.y);
         textBatch.end();
     }

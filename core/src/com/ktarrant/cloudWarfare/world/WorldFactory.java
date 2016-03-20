@@ -2,19 +2,12 @@ package com.ktarrant.cloudWarfare.world;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
-import com.badlogic.gdx.physics.box2d.Shape;
 import com.badlogic.gdx.physics.box2d.World;
-import com.badlogic.gdx.utils.Array;
 
 /**
  * Created by ktarrant1 on 12/20/15.
@@ -42,7 +35,7 @@ public class WorldFactory {
     }
     private static final FixtureDef demoPlatformFixtureDef;
     static {
-        // Create a fixture definition to apply our shape to
+        // Create a rootFixture definition to apply our torsoShape to
         demoPlatformFixtureDef = new FixtureDef();
         demoPlatformFixtureDef.shape = polygonShape;
         demoPlatformFixtureDef.density = 0.2f;
@@ -51,18 +44,11 @@ public class WorldFactory {
 
     public BodyComponent createPlatformComponent(Entity worldEntity) {
         WorldComponent worldComp = worldEntity.getComponent(WorldComponent.class);
-        BodyComponent bodyComp = new BodyComponent();
+        BodyComponent bodyComp = new BodyComponent(worldEntity);
 
-        // Use the static body and fixture defs
-        bodyComp.bodyDef = demoPlatformBodyDef;
-        bodyComp.fixtureDef = demoPlatformFixtureDef;
-
-        // Create the body and the fixture using the world
-        bodyComp.body = worldComp.world.createBody(bodyComp.bodyDef);
-        bodyComp.fixture = bodyComp.body.createFixture(bodyComp.fixtureDef);
-
-        // Keep a reference to the parent world
-        bodyComp.worldEntity = worldEntity;
+        // Create the rootBody and the rootFixture using the world
+        bodyComp.rootBody = worldComp.world.createBody(demoPlatformBodyDef);
+        bodyComp.rootFixture = bodyComp.rootBody.createFixture(demoPlatformFixtureDef);
 
         return bodyComp;
     }

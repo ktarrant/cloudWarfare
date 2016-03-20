@@ -59,22 +59,22 @@ public class PlayerStateSystem extends IteratingSystem {
         }
 
         // Update any properties we can regardless of state
-        bodyComp.body.setFixedRotation(playerComp.state.isFixedRotation);
-        bodyComp.body.setAngularDamping(playerComp.state.angularDamping);
+        bodyComp.rootBody.setFixedRotation(playerComp.state.isFixedRotation);
+        bodyComp.rootBody.setAngularDamping(playerComp.state.angularDamping);
 
         if (playerComp.state.isOnFoot) {
             BodyComponent floorBody = bodyMapper.get(floorEntity);
-            bodyComp.body.setLinearDamping(
-                    playerComp.state.linearDamping * floorBody.body.getLinearDamping());
+            bodyComp.rootBody.setLinearDamping(
+                    playerComp.state.linearDamping * floorBody.rootBody.getLinearDamping());
         } else {
-            bodyComp.body.setLinearDamping(playerComp.state.linearDamping);
+            bodyComp.rootBody.setLinearDamping(playerComp.state.linearDamping);
         }
 
         // If the player is on Foot and fixed rotation, update which way they are facing.
         if (playerComp.state.isOnFoot && playerComp.state.isFixedRotation &&
-                bodyComp.body.getLinearVelocity().x != 0.0f) {
-            bodyComp.body.setTransform(bodyComp.body.getPosition(),
-                    bodyComp.body.getLinearVelocity().x > 0.0f ? 0.0f : MathUtils.PI);
+                bodyComp.rootBody.getLinearVelocity().x != 0.0f) {
+            bodyComp.rootBody.setTransform(bodyComp.rootBody.getPosition(),
+                    bodyComp.rootBody.getLinearVelocity().x > 0.0f ? 0.0f : MathUtils.PI);
         }
     }
 

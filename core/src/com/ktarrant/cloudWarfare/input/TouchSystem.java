@@ -15,7 +15,6 @@ import com.ktarrant.cloudWarfare.action.ActionComponent;
 import com.ktarrant.cloudWarfare.action.ActionDefLoader;
 import com.ktarrant.cloudWarfare.action.ActionModifierComponent;
 import com.ktarrant.cloudWarfare.player.PlayerComponent;
-import com.ktarrant.cloudWarfare.player.PlayerState;
 import com.ktarrant.cloudWarfare.world.BodyComponent;
 import com.ktarrant.cloudWarfare.world.CameraComponent;
 
@@ -67,7 +66,7 @@ public class TouchSystem extends IteratingSystem implements InputProcessor {
             BodyComponent bodyComp = bodyMapper.get(entity);
             CameraComponent cameraComp = cameraMapper.get(bodyComp.worldEntity);
             Camera camera = cameraComp.camera;
-            camera.position.set(bodyComp.body.getPosition(), 0);
+            camera.position.set(bodyComp.rootBody.getPosition(), 0);
             camera.update();
         }
     }
@@ -105,7 +104,7 @@ public class TouchSystem extends IteratingSystem implements InputProcessor {
 
         // Compute the angles and vectors of the tap relative to the character
         Vector3 worldCoor = camera.unproject(cursorPos);
-        Vector2 playerPos = bodyComp.body.getPosition();
+        Vector2 playerPos = bodyComp.rootBody.getPosition();
         currentCursorVector = new Vector2(worldCoor.x - playerPos.x, worldCoor.y - playerPos.y);
     }
 

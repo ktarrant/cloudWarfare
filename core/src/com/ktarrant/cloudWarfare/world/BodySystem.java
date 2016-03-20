@@ -11,13 +11,9 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
-import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.ktarrant.cloudWarfare.SystemPriority;
 import com.ktarrant.cloudWarfare.player.PlayerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by Kevin on 2/28/2016.
@@ -90,7 +86,7 @@ public class BodySystem extends IteratingSystem implements ContactListener {
             unregisterWorldEntity(worldEntity);
         }
 
-        // Clean up the fixtures of all the body entities
+        // Clean up the fixtures of all the rootBody entities
         ImmutableArray<Entity> bodyEntities = engine.getEntitiesFor(Family.all(
                 BodyComponent.class).get());
         for (Entity bodyEntity : bodyEntities) {
@@ -104,7 +100,7 @@ public class BodySystem extends IteratingSystem implements ContactListener {
         BoundsComponent boundsComp = boundsMapper.get(bodyComp.worldEntity);
 
         // Check if this entity has fallen off the bounds
-        Body playerBody = bodyComp.body;
+        Body playerBody = bodyComp.rootBody;
         if (!boundsComp.bounds.contains(playerBody.getPosition())) {
             // Reset the playerComponent and put them back in the start position
             // TODO: We need to tell the player that they just died.
@@ -158,8 +154,8 @@ public class BodySystem extends IteratingSystem implements ContactListener {
 
     protected void registerBodyEntity(Entity bodyEntity) {
         BodyComponent bodyComp = bodyMapper.get(bodyEntity);
-        // Use the fixture to get a reference to the entity
-        bodyComp.fixture.setUserData(bodyEntity);
+        // Use the rootFixture to get a reference to the entity
+        bodyComp.rootFixture.setUserData(bodyEntity);
     }
 
     protected void unregisterBodyEntity(Entity bodyEntity) {
