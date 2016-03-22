@@ -95,7 +95,6 @@ public class ContactSystem extends EntitySystem implements ContactListener {
     public void beginContact(Contact contact) {
         Entity entityA = (Entity) contact.getFixtureA().getUserData();
         Entity entityB = (Entity) contact.getFixtureB().getUserData();
-        System.out.println("Contact: " + String.valueOf(entityA) + " ; " + String.valueOf(entityB));
         if (entityA != null && entityB != null) {
             // Both of these entities are managed by us
             contactMapper.get(entityA).contactBodies.add(entityB);
