@@ -6,15 +6,11 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Manifold;
-import com.ktarrant.cloudWarfare.SystemPriority;
-import com.ktarrant.cloudWarfare.player.body.PlayerFactory;
 
 /**
  * Created by Kevin on 2/28/2016.
@@ -36,15 +32,15 @@ public class ContactSystem extends EntitySystem implements ContactListener {
         }
     };
 
-    public final EntityListener bodyListener = new EntityListener() {
+    public final EntityListener contactListener = new EntityListener() {
         @Override
         public void entityAdded(Entity entity) {
-            registerBodyEntity(entity);
+            registerContactEntity(entity);
         }
 
         @Override
         public void entityRemoved(Entity entity) {
-            unregisterBodyEntity(entity);
+            unregisterContactEntity(entity);
         }
     };
 
@@ -61,20 +57,20 @@ public class ContactSystem extends EntitySystem implements ContactListener {
         engine.addEntityListener(worldFamily, worldListener);
 
         // Register all the bodies we can find
-        Family bodyFamily = Family.all(ContactComponent.class).get();
-        ImmutableArray<Entity> bodyEntities = engine.getEntitiesFor(bodyFamily);
-        for (Entity bodyEntity : bodyEntities) {
-            registerBodyEntity(bodyEntity);
+        Family contactFamily = Family.all(ContactComponent.class).get();
+        ImmutableArray<Entity> contactEntities = engine.getEntitiesFor(contactFamily);
+        for (Entity contactEntity : contactEntities) {
+            registerContactEntity(contactEntity);
         }
         // Start listening for new bodies
-        engine.addEntityListener(bodyFamily, bodyListener);
+        engine.addEntityListener(contactFamily, contactListener);
     }
 
     public void removedFromEngine(Engine engine) {
         super.removedFromEngine(engine);
         // Stop listening for new entities
         engine.removeEntityListener(worldListener);
-        engine.removeEntityListener(bodyListener);
+        engine.removeEntityListener(contactListener);
 
         // Unregister ourselves with all worlds we can find
         ImmutableArray<Entity> worldEntities = engine.getEntitiesFor(Family.all(
@@ -84,10 +80,10 @@ public class ContactSystem extends EntitySystem implements ContactListener {
         }
 
         // Clean up the fixtures of all the rootBody entities
-        ImmutableArray<Entity> bodyEntities = engine.getEntitiesFor(Family.all(
+        ImmutableArray<Entity> contactEntities = engine.getEntitiesFor(Family.all(
                 ContactComponent.class).get());
-        for (Entity bodyEntity : bodyEntities) {
-            unregisterWorldEntity(bodyEntity);
+        for (Entity contactEntity : contactEntities) {
+            unregisterWorldEntity(contactEntity);
         }
     }
 
@@ -133,18 +129,18 @@ public class ContactSystem extends EntitySystem implements ContactListener {
         worldComp.world.setContactListener(null);
     }
 
-    protected void registerBodyEntity(Entity bodyEntity) {
-        ContactComponent contactComp = contactMapper.get(bodyEntity);
+    protected void registerContactEntity(Entity contactEntity) {
+        ContactComponent contactComp = contactMapper.get(contactEntity);
         // Use the rootFixture to get a reference to the entity
-        contactComp.rootFixture.setUserData(bodyEntity);
+        contactComp.rootFixture.setUserData(contactEntity);
     }
 
-    protected void unregisterBodyEntity(Entity bodyEntity) {
-        ContactComponent contactComp = contactMapper.get(bodyEntity);
+    protected void unregisterContactEntity(Entity contactEntity) {
+        ContactComponent contactComp = contactMapper.get(contactEntity);
         // Remove this entity from all contact bodies lists
-        for (Entity contactEntity : contactComp.contactBodies) {
-            ContactComponent comp = contactMapper.get(contactEntity);
-            comp.contactBodies.removeValue(bodyEntity, false);
+        for (Entity entity : contactComp.contactBodies) {
+            ContactComponent comp = contactMapper.get(entity);
+            comp.contactBodies.removeValue(contactEntity, false);
         }
     }
 }

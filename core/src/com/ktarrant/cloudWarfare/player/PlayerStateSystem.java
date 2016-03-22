@@ -104,7 +104,7 @@ public class PlayerStateSystem extends IteratingSystem implements EntityListener
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
         PlayerComponent playerComp = playerMapper.get(entity);
-
+        
         // Perform a state change if needed
         updateState(playerComp, contactMapper.get(entity), false);
 

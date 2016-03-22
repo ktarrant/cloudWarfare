@@ -78,6 +78,7 @@ public class PlayerFactory {
         // Create our rootFixture and attach it to the rootBody
         playerComp.rootFixture =
                 playerComp.rootBody.createFixture(PLAYER_TORSO_FIXTUREDEF);
+        playerComp.rootFixture.setUserData(entity);
 
         LimbFactory.setupLimbs(worldComp, playerComp);
         entity.add(playerComp);
