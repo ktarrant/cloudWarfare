@@ -9,11 +9,11 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.physics.box2d.*;
 import com.ktarrant.cloudWarfare.action.ActionSystem;
 import com.ktarrant.cloudWarfare.input.TouchSystem;
-import com.ktarrant.cloudWarfare.player.PlayerFactory;
+import com.ktarrant.cloudWarfare.player.body.PlayerFactory;
 import com.ktarrant.cloudWarfare.player.PlayerRendererSystem;
 import com.ktarrant.cloudWarfare.player.PlayerStateSystem;
-import com.ktarrant.cloudWarfare.world.BodyComponent;
-import com.ktarrant.cloudWarfare.world.BodySystem;
+import com.ktarrant.cloudWarfare.world.ContactComponent;
+import com.ktarrant.cloudWarfare.world.ContactSystem;
 import com.ktarrant.cloudWarfare.world.DebugRendererSystem;
 import com.ktarrant.cloudWarfare.world.WorldFactory;
 import com.ktarrant.cloudWarfare.world.WorldSystem;
@@ -34,7 +34,7 @@ public class MainGdxGame extends ApplicationAdapter {
         // Set up Ashley's Engine and Systems
         this.engine = new Engine();
         this.engine.addSystem(new WorldSystem());           // PR. 0
-        this.engine.addSystem(new BodySystem());            // PR. 1
+        this.engine.addSystem(new ContactSystem());         // PR. 1
         this.engine.addSystem(new PlayerStateSystem());     // PR. 2
         TouchSystem touchSystem = new TouchSystem();
         this.engine.addSystem(touchSystem);                 // PR. 3
@@ -48,9 +48,10 @@ public class MainGdxGame extends ApplicationAdapter {
         Entity demoWorld = worldFactory.createDemoWorld();
         Entity player = playerFactory.createPlayerEntity(demoWorld);
         Entity platform = new Entity();
-        // HACK: To help me out in the BodySystem, give Fixture reference to Entity
-        BodyComponent bodyComponent = worldFactory.createPlatformComponent(demoWorld);
-        platform.add(bodyComponent);
+        ContactComponent contactComponent = worldFactory.createPlatformComponent(demoWorld);
+        // HACK: To help me out in the ContactSystem, give Fixture reference to Entity
+        contactComponent.rootFixture.setUserData(platform);
+        platform.add(contactComponent);
 
         // Add the objects to the engine
         engine.addEntity(demoWorld);

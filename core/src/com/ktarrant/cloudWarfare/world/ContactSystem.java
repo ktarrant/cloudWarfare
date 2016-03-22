@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.ComponentMapper;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
+import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.ashley.utils.ImmutableArray;
@@ -13,19 +14,15 @@ import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.ktarrant.cloudWarfare.SystemPriority;
-import com.ktarrant.cloudWarfare.player.PlayerFactory;
+import com.ktarrant.cloudWarfare.player.body.PlayerFactory;
 
 /**
  * Created by Kevin on 2/28/2016.
  */
-public class BodySystem extends IteratingSystem implements ContactListener {
-    private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
+public class ContactSystem extends EntitySystem implements ContactListener {
+    private ComponentMapper<ContactComponent> contactMapper = ComponentMapper.getFor(ContactComponent.class);
     private ComponentMapper<WorldComponent> worldMapper = ComponentMapper.getFor(WorldComponent.class);
     private ComponentMapper<BoundsComponent> boundsMapper = ComponentMapper.getFor(BoundsComponent.class);
-
-    public BodySystem() {
-        super(Family.all(BodyComponent.class).get(), SystemPriority.BODY.getPriorityValue());
-    }
 
     public final EntityListener worldListener = new EntityListener() {
         @Override
@@ -64,7 +61,7 @@ public class BodySystem extends IteratingSystem implements ContactListener {
         engine.addEntityListener(worldFamily, worldListener);
 
         // Register all the bodies we can find
-        Family bodyFamily = Family.all(BodyComponent.class).get();
+        Family bodyFamily = Family.all(ContactComponent.class).get();
         ImmutableArray<Entity> bodyEntities = engine.getEntitiesFor(bodyFamily);
         for (Entity bodyEntity : bodyEntities) {
             registerBodyEntity(bodyEntity);
@@ -88,25 +85,9 @@ public class BodySystem extends IteratingSystem implements ContactListener {
 
         // Clean up the fixtures of all the rootBody entities
         ImmutableArray<Entity> bodyEntities = engine.getEntitiesFor(Family.all(
-                BodyComponent.class).get());
+                ContactComponent.class).get());
         for (Entity bodyEntity : bodyEntities) {
             unregisterWorldEntity(bodyEntity);
-        }
-    }
-
-    @Override
-    protected void processEntity(Entity entity, float deltaTime) {
-        BodyComponent bodyComp = bodyMapper.get(entity);
-        BoundsComponent boundsComp = boundsMapper.get(bodyComp.worldEntity);
-
-        // Check if this entity has fallen off the bounds
-        Body playerBody = bodyComp.rootBody;
-        if (!boundsComp.bounds.contains(playerBody.getPosition())) {
-            // Reset the playerComponent and put them back in the start position
-            // TODO: We need to tell the player that they just died.
-            playerBody.setAngularVelocity(0.0f);
-            playerBody.setLinearVelocity(0.0f, 0.0f);
-            playerBody.setTransform(PlayerFactory.DEFAULT_START_POS, 0.0f);
         }
     }
 
@@ -114,10 +95,11 @@ public class BodySystem extends IteratingSystem implements ContactListener {
     public void beginContact(Contact contact) {
         Entity entityA = (Entity) contact.getFixtureA().getUserData();
         Entity entityB = (Entity) contact.getFixtureB().getUserData();
+        System.out.println("Contact: " + String.valueOf(entityA) + " ; " + String.valueOf(entityB));
         if (entityA != null && entityB != null) {
             // Both of these entities are managed by us
-            bodyMapper.get(entityA).contactBodies.add(entityB);
-            bodyMapper.get(entityB).contactBodies.add(entityA);
+            contactMapper.get(entityA).contactBodies.add(entityB);
+            contactMapper.get(entityB).contactBodies.add(entityA);
         }
     }
 
@@ -127,8 +109,8 @@ public class BodySystem extends IteratingSystem implements ContactListener {
         Entity entityB = (Entity) contact.getFixtureB().getUserData();
         if (entityA != null && entityB != null) {
             // Both of these entities are managed by us
-            bodyMapper.get(entityA).contactBodies.removeValue(entityB, false);
-            bodyMapper.get(entityB).contactBodies.removeValue(entityA, false);
+            contactMapper.get(entityA).contactBodies.removeValue(entityB, false);
+            contactMapper.get(entityB).contactBodies.removeValue(entityA, false);
         }
     }
 
@@ -153,16 +135,16 @@ public class BodySystem extends IteratingSystem implements ContactListener {
     }
 
     protected void registerBodyEntity(Entity bodyEntity) {
-        BodyComponent bodyComp = bodyMapper.get(bodyEntity);
+        ContactComponent contactComp = contactMapper.get(bodyEntity);
         // Use the rootFixture to get a reference to the entity
-        bodyComp.rootFixture.setUserData(bodyEntity);
+        contactComp.rootFixture.setUserData(bodyEntity);
     }
 
     protected void unregisterBodyEntity(Entity bodyEntity) {
-        BodyComponent bodyComp = bodyMapper.get(bodyEntity);
+        ContactComponent contactComp = contactMapper.get(bodyEntity);
         // Remove this entity from all contact bodies lists
-        for (Entity contactEntity : bodyComp.contactBodies) {
-            BodyComponent comp = bodyMapper.get(contactEntity);
+        for (Entity contactEntity : contactComp.contactBodies) {
+            ContactComponent comp = contactMapper.get(contactEntity);
             comp.contactBodies.removeValue(bodyEntity, false);
         }
     }

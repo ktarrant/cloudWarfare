@@ -14,8 +14,7 @@ import com.ktarrant.cloudWarfare.SystemPriority;
 import com.ktarrant.cloudWarfare.action.ActionComponent;
 import com.ktarrant.cloudWarfare.action.ActionDefLoader;
 import com.ktarrant.cloudWarfare.action.ActionModifierComponent;
-import com.ktarrant.cloudWarfare.player.PlayerComponent;
-import com.ktarrant.cloudWarfare.world.BodyComponent;
+import com.ktarrant.cloudWarfare.player.body.PlayerComponent;
 import com.ktarrant.cloudWarfare.world.CameraComponent;
 
 import java.util.HashMap;
@@ -26,7 +25,6 @@ import java.util.HashMap;
 public class TouchSystem extends IteratingSystem implements InputProcessor {
     private ComponentMapper<PlayerComponent> playerMapper =
             ComponentMapper.getFor(PlayerComponent.class);
-    private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
     private ComponentMapper<CameraComponent> cameraMapper =
             ComponentMapper.getFor(CameraComponent.class);
     private ComponentMapper<ActionModifierComponent> actionModMapper =
@@ -39,8 +37,7 @@ public class TouchSystem extends IteratingSystem implements InputProcessor {
 
     public TouchSystem() {
         super(Family.all(
-                PlayerComponent.class,
-                BodyComponent.class).get(),
+                PlayerComponent.class).get(),
         SystemPriority.TOUCH.getPriorityValue());
 
         currentModifier = ActionModifierComponent.NORMAL;
@@ -63,10 +60,10 @@ public class TouchSystem extends IteratingSystem implements InputProcessor {
         // Handle updates specific to the active player
         if (activePlayer == entity) {
             // Update the camera to be centered on the active player
-            BodyComponent bodyComp = bodyMapper.get(entity);
-            CameraComponent cameraComp = cameraMapper.get(bodyComp.worldEntity);
+            PlayerComponent playerComp = playerMapper.get(entity);
+            CameraComponent cameraComp = cameraMapper.get(playerComp.worldEntity);
             Camera camera = cameraComp.camera;
-            camera.position.set(bodyComp.rootBody.getPosition(), 0);
+            camera.position.set(playerComp.rootBody.getPosition(), 0);
             camera.update();
         }
     }
@@ -99,12 +96,12 @@ public class TouchSystem extends IteratingSystem implements InputProcessor {
             return;
         }
 
-        BodyComponent bodyComp = bodyMapper.get(activePlayer);
-        Camera camera = cameraMapper.get(bodyComp.worldEntity).camera;
+        PlayerComponent playerComp = playerMapper.get(activePlayer);
+        Camera camera = cameraMapper.get(playerComp.worldEntity).camera;
 
         // Compute the angles and vectors of the tap relative to the character
         Vector3 worldCoor = camera.unproject(cursorPos);
-        Vector2 playerPos = bodyComp.rootBody.getPosition();
+        Vector2 playerPos = playerComp.rootBody.getPosition();
         currentCursorVector = new Vector2(worldCoor.x - playerPos.x, worldCoor.y - playerPos.y);
     }
 
@@ -129,7 +126,6 @@ public class TouchSystem extends IteratingSystem implements InputProcessor {
         currentAction.add(playerComp);
         currentAction.add(actionComp);
         currentAction.add(currentModifier);
-        currentAction.add(bodyMapper.get(activePlayer));
         currentAction.add(touchComp);
         this.getEngine().addEntity(currentAction);
     }

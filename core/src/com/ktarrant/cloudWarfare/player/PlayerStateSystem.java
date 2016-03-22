@@ -7,11 +7,10 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
 import com.ktarrant.cloudWarfare.SystemPriority;
-import com.ktarrant.cloudWarfare.world.BodyComponent;
-import com.ktarrant.cloudWarfare.world.WorldComponent;
+import com.ktarrant.cloudWarfare.player.body.PlayerComponent;
+import com.ktarrant.cloudWarfare.world.ContactComponent;
 
 /**
  * Created by Kevin on 2/28/2016.
@@ -19,12 +18,11 @@ import com.ktarrant.cloudWarfare.world.WorldComponent;
 public class PlayerStateSystem extends IteratingSystem implements EntityListener {
     private ComponentMapper<PlayerComponent> playerMapper =
             ComponentMapper.getFor(PlayerComponent.class);
-    private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
+    private ComponentMapper<ContactComponent> contactMapper =
+            ComponentMapper.getFor(ContactComponent.class);
 
     public PlayerStateSystem() {
-        super(Family.all(
-                PlayerComponent.class,
-                BodyComponent.class).get(),
+        super(Family.all(PlayerComponent.class, ContactComponent.class).get(),
                 SystemPriority.PLAYER_STATE.getPriorityValue());
     }
 
@@ -41,10 +39,10 @@ public class PlayerStateSystem extends IteratingSystem implements EntityListener
         super.addedToEngine(engine);
 
         // Update all players that we find
-        Family playerFamily = Family.all(PlayerComponent.class, BodyComponent.class).get();
+        Family playerFamily = Family.all(ContactComponent.class, PlayerComponent.class).get();
         ImmutableArray<Entity> playerEntities = engine.getEntitiesFor(playerFamily);
         for (Entity playerEntity : playerEntities) {
-            updateState(playerMapper.get(playerEntity), bodyMapper.get(playerEntity), true);
+            updateState(playerMapper.get(playerEntity), contactMapper.get(playerEntity), true);
         }
         // Start listening for new players
         engine.addEntityListener(playerFamily, this);
@@ -59,7 +57,7 @@ public class PlayerStateSystem extends IteratingSystem implements EntityListener
 
     @Override
     public void entityAdded(Entity entity) {
-        updateState(playerMapper.get(entity), bodyMapper.get(entity), true);
+        updateState(playerMapper.get(entity), contactMapper.get(entity), true);
     }
 
     @Override
@@ -67,9 +65,10 @@ public class PlayerStateSystem extends IteratingSystem implements EntityListener
         // Not needed
     }
 
-    private void updateState(PlayerComponent playerComp, BodyComponent bodyComp, boolean force) {
+    private void updateState(PlayerComponent playerComp, ContactComponent contactComp,
+                             boolean force) {
         // Compute which state we are now in
-        Entity floorEntity = getFloorEntity(bodyComp.contactBodies);
+        Entity floorEntity = getFloorEntity(contactComp.contactBodies);
         if (floorEntity == null) {
             // We are currently in the air
             if (playerComp.state.isOnFoot) {
@@ -97,25 +96,17 @@ public class PlayerStateSystem extends IteratingSystem implements EntityListener
         }
 
         // Update any properties we can regardless of state
-        bodyComp.rootBody.setFixedRotation(playerComp.state.isFixedRotation);
-        bodyComp.rootBody.setAngularDamping(playerComp.state.angularDamping);
-
-        if (playerComp.state.isOnFoot) {
-            BodyComponent floorBody = bodyMapper.get(floorEntity);
-            bodyComp.rootBody.setLinearDamping(
-                    playerComp.state.linearDamping * floorBody.rootBody.getLinearDamping());
-        } else {
-            bodyComp.rootBody.setLinearDamping(playerComp.state.linearDamping);
-        }
+        playerComp.rootBody.setFixedRotation(playerComp.state.isFixedRotation);
+        playerComp.rootBody.setAngularDamping(playerComp.state.angularDamping);
+        playerComp.rootBody.setLinearDamping(playerComp.state.linearDamping);
     }
 
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
         PlayerComponent playerComp = playerMapper.get(entity);
-        BodyComponent bodyComp = bodyMapper.get(entity);
 
         // Perform a state change if needed
-        updateState(playerComp, bodyComp, false);
+        updateState(playerComp, contactMapper.get(entity), false);
 
         // If the player is on Foot, replenish stamina faster
         playerComp.stamina += playerComp.state.staminaRegenRate * deltaTime;

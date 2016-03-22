@@ -11,12 +11,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.ktarrant.cloudWarfare.SystemPriority;
 import com.ktarrant.cloudWarfare.action.ActionComponent;
 import com.ktarrant.cloudWarfare.action.ActionModifierComponent;
-import com.ktarrant.cloudWarfare.world.BodyComponent;
+import com.ktarrant.cloudWarfare.player.body.PlayerComponent;
 import com.ktarrant.cloudWarfare.world.CameraComponent;
+import com.ktarrant.cloudWarfare.world.ContactComponent;
 
 import java.util.HashMap;
 
@@ -42,13 +42,14 @@ public class PlayerRendererSystem extends IteratingSystem {
             }
         }
     }
-    private ComponentMapper<PlayerComponent> playerMapper =
-            ComponentMapper.getFor(PlayerComponent.class);
     private ComponentMapper<ActionComponent> actionMapper =
             ComponentMapper.getFor(ActionComponent.class);
     private ComponentMapper<ActionModifierComponent> actionModMapper =
             ComponentMapper.getFor(ActionModifierComponent.class);
-    private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
+    private ComponentMapper<PlayerComponent> playerMapper =
+            ComponentMapper.getFor(PlayerComponent.class);
+    private ComponentMapper<ContactComponent> contactMapper =
+            ComponentMapper.getFor(ContactComponent.class);
     private ComponentMapper<CameraComponent> cameraMapper =
             ComponentMapper.getFor(CameraComponent.class);
 
@@ -59,8 +60,7 @@ public class PlayerRendererSystem extends IteratingSystem {
 
     public PlayerRendererSystem() {
         super(Family.all(
-                PlayerComponent.class,
-                BodyComponent.class).get(),
+                PlayerComponent.class).get(),
                 SystemPriority.PLAYER_RENDER.getPriorityValue());
 
         shapeRenderer = new ShapeRenderer();
@@ -76,25 +76,26 @@ public class PlayerRendererSystem extends IteratingSystem {
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
         // Set up the camera
-        BodyComponent bodyComp = bodyMapper.get(entity);
-        Entity worldEntity = bodyComp.worldEntity;
+        PlayerComponent playerComp = playerMapper.get(entity);
+        ContactComponent contactComp = contactMapper.get(entity);
+        Entity worldEntity = playerComp.worldEntity;
         Camera camera = cameraMapper.get(worldEntity).camera;
         shapeRenderer.setProjectionMatrix(camera.combined);
         textBatch.setProjectionMatrix(camera.combined);
 
         // Draw the player state
         PlayerState stateComp = playerMapper.get(entity).state;
-        drawPlayerState(bodyComp, stateComp);
+        drawPlayerState(playerComp, stateComp);
 
         // Update and draw the environmental data
-//        updateEnvironmentData("angularDamping", stateComp.angularDamping);
-//        updateEnvironmentData("linearDamping", stateComp.linearDamping);
-//        updateEnvironmentData("staminaRegenRate", stateComp.staminaRegenRate);
-//
-//        updateEnvironmentData("velX", bodyComp.rootBody.getLinearVelocity().x);
-//        updateEnvironmentData("velY", bodyComp.rootBody.getLinearVelocity().y);
-//        updateEnvironmentData("contactCount", bodyComp.contactBodies.size);
-//        drawEnvironmentData(bodyComp);
+        updateEnvironmentData("angularDamping", stateComp.angularDamping);
+        updateEnvironmentData("linearDamping", stateComp.linearDamping);
+        updateEnvironmentData("staminaRegenRate", stateComp.staminaRegenRate);
+
+        updateEnvironmentData("velX", playerComp.rootBody.getLinearVelocity().x);
+        updateEnvironmentData("velY", playerComp.rootBody.getLinearVelocity().y);
+        updateEnvironmentData("contactCount", contactComp.contactBodies.size);
+        drawEnvironmentData(playerComp);
     }
 
 //    public void drawPlayerControlHelp(PlayerComponent playerComponent, Array<ActionComponent> actionDefList) {
@@ -124,10 +125,10 @@ public class PlayerRendererSystem extends IteratingSystem {
         }
     }
 
-    private void drawEnvironmentData(BodyComponent bodyComp) {
-        float playerRadius = bodyComp.rootFixture.getShape().getRadius();
+    private void drawEnvironmentData(PlayerComponent playerComp) {
+        float playerRadius = playerComp.rootFixture.getShape().getRadius();
         float textRad = playerRadius * 4.0f;
-        Vector2 playerPos = bodyComp.rootBody.getPosition();
+        Vector2 playerPos = playerComp.rootBody.getPosition();
         int i = 0;
         textBatch.begin();
         for (PlayerDataLabel label : this.envData.values()) {
@@ -141,11 +142,11 @@ public class PlayerRendererSystem extends IteratingSystem {
         textBatch.end();
     }
 
-    public void drawPlayerState(BodyComponent bodyComp, PlayerState stateComp) {
-        float fontScale = bodyComp.rootFixture.getShape().getRadius()/12.0f;
+    public void drawPlayerState(PlayerComponent playerComp, PlayerState stateComp) {
+        float fontScale = playerComp.rootFixture.getShape().getRadius()/12.0f;
         font.getData().setScale(fontScale);
         textBatch.begin();
-        Vector2 playerPos = bodyComp.rootBody.getPosition();
+        Vector2 playerPos = playerComp.rootBody.getPosition();
         font.draw(textBatch, String.valueOf(stateComp.stateIcon), playerPos.x, playerPos.y);
         textBatch.end();
     }

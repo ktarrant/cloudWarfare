@@ -8,8 +8,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.ktarrant.cloudWarfare.SystemPriority;
 import com.ktarrant.cloudWarfare.input.TouchComponent;
-import com.ktarrant.cloudWarfare.player.PlayerComponent;
-import com.ktarrant.cloudWarfare.world.BodyComponent;
+import com.ktarrant.cloudWarfare.player.body.PlayerComponent;
 
 /**
  * Created by ktarrant1 on 1/3/16.
@@ -22,7 +21,6 @@ public class ActionSystem extends IteratingSystem {
             ComponentMapper.getFor(ActionComponent.class);
     private ComponentMapper<ActionModifierComponent> actionModMapper =
             ComponentMapper.getFor(ActionModifierComponent.class);
-    private ComponentMapper<BodyComponent> bodyMapper = ComponentMapper.getFor(BodyComponent.class);
     private ComponentMapper<TouchComponent> touchMapper =
             ComponentMapper.getFor(TouchComponent.class);
 
@@ -31,7 +29,6 @@ public class ActionSystem extends IteratingSystem {
                 PlayerComponent.class,
                 ActionComponent.class,
                 ActionModifierComponent.class,
-                BodyComponent.class,
                 TouchComponent.class).get(),
                 SystemPriority.ACTION.getPriorityValue());
     }
@@ -75,7 +72,6 @@ public class ActionSystem extends IteratingSystem {
         if (match != null) {
             // We found an ActionDef match, that means we can create execute the action
             PlayerComponent playerComp = playerMapper.get(entity);
-            BodyComponent bodyComp = bodyMapper.get(entity);
 
             float staminaAfter = playerComp.stamina * match.depleteMultiplier
                     - match.depleteConstant;
@@ -84,7 +80,7 @@ public class ActionSystem extends IteratingSystem {
                 direction.scl(match.linearImpulseMultiplier);
                 direction.add(match.linearImpulseConstant);
                 direction.scl(playerComp.stamina);
-                bodyComp.rootBody.applyLinearImpulse(direction, Vector2.Zero, true);
+                playerComp.rootBody.applyLinearImpulse(direction, Vector2.Zero, true);
                 playerComp.stamina = staminaAfter;
             }
         }

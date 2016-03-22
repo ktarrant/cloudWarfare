@@ -4,7 +4,9 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
@@ -42,15 +44,15 @@ public class WorldFactory {
 //        demoPlatformFixtureDef.friction = 1.0f;
     }
 
-    public BodyComponent createPlatformComponent(Entity worldEntity) {
+    public ContactComponent createPlatformComponent(Entity worldEntity) {
         WorldComponent worldComp = worldEntity.getComponent(WorldComponent.class);
-        BodyComponent bodyComp = new BodyComponent(worldEntity);
+        ContactComponent contactComponent = new ContactComponent();
 
         // Create the rootBody and the rootFixture using the world
-        bodyComp.rootBody = worldComp.world.createBody(demoPlatformBodyDef);
-        bodyComp.rootFixture = bodyComp.rootBody.createFixture(demoPlatformFixtureDef);
+        Body rootBody = worldComp.world.createBody(demoPlatformBodyDef);
+        contactComponent.rootFixture = rootBody.createFixture(demoPlatformFixtureDef);
 
-        return bodyComp;
+        return contactComponent;
     }
 
     public static BoundsComponent createDemoBoundsComponent() {
