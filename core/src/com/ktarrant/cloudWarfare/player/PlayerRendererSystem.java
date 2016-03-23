@@ -86,16 +86,11 @@ public class PlayerRendererSystem extends IteratingSystem {
         // Draw the player state
         PlayerState stateComp = playerMapper.get(entity).state;
         drawPlayerState(playerComp, stateComp);
-
-        // Update and draw the environmental data
-        updateEnvironmentData("angularDamping", stateComp.angularDamping);
-        updateEnvironmentData("linearDamping", stateComp.linearDamping);
-        updateEnvironmentData("staminaRegenRate", stateComp.staminaRegenRate);
-
-        updateEnvironmentData("velX", playerComp.rootBody.getLinearVelocity().x);
-        updateEnvironmentData("velY", playerComp.rootBody.getLinearVelocity().y);
-        updateEnvironmentData("contactCount", contactComp.contactBodies.size);
-        drawEnvironmentData(playerComp);
+//
+//        // Update and draw the environmental data
+//        updateEnvironmentData("staminaRegenRate", stateComp.staminaRegenRate);
+//        updateEnvironmentData("contactCount", contactComp.contactBodies.size);
+//        drawEnvironmentData(playerComp);
     }
 
 //    public void drawPlayerControlHelp(PlayerComponent playerComponent, Array<ActionComponent> actionDefList) {

@@ -29,8 +29,8 @@ public class LimbFactory {
     public static final float PLAYER_FOOT_WIDTH = PLAYER_HEAD_RADIUS;
     public static final float PLAYER_FOOT_HEIGHT = PLAYER_FOOT_WIDTH / 2.0f;
     public static final float PLAYER_FOOT_TAPER = PLAYER_FOOT_WIDTH / 5.0f;
-    public static final float PLAYER_WING_SPAN = PlayerFactory.PLAYER_TORSO_RADIUS * 11.0f / 6.0f;
-    public static final float PLAYER_SHOULDER_WIDTH = PlayerFactory.PLAYER_TORSO_RADIUS / 10.0f;
+    public static final float PLAYER_WING_SPAN = PlayerFactory.PLAYER_TORSO_RADIUS * 1.6f;
+    public static final float PLAYER_SHOULDER_WIDTH = PlayerFactory.PLAYER_TORSO_RADIUS / 5.0f;
 
     // ---------------------------------------------------------------------------------------------
     // Shapes used as limbs of the character
@@ -70,11 +70,11 @@ public class LimbFactory {
     }
 
     protected enum LimbType {
-        HEAD        (1.3f,   90.0f, PLAYER_HEAD_SHAPE, 0),
-        LEFT_TALON  (1.6f, -110.0f, PLAYER_FOOT_SHAPE, 0),
-        RIGHT_TALON (1.6f,  -70.0f, PLAYER_FOOT_SHAPE, 0),
-        LEFT_WING   (0.8f,  160.0f, PLAYER_WING_SHAPE, -110),
-        RIGHT_WING  (0.8f,   20.0f, PLAYER_WING_SHAPE, -70);
+        HEAD        (1.5f, 90.0f, PLAYER_HEAD_SHAPE, 0),
+        LEFT_TALON  (2f, -110.0f, PLAYER_FOOT_SHAPE, 0),
+        RIGHT_TALON (2f,  -70.0f, PLAYER_FOOT_SHAPE, 0),
+        LEFT_WING   (1f,  130.0f, PLAYER_WING_SHAPE, -110),
+        RIGHT_WING  (1f,   50.0f, PLAYER_WING_SHAPE, -70);
 
         public final float DOCK_RADIUS_RATIO;
         public final float DOCK_ANGLE;
@@ -113,7 +113,6 @@ public class LimbFactory {
         PLAYER_LIMB_JOINT.initialize(playerComp.rootBody, limb.body, playerComp.rootBody.getPosition());
         // Returns subclass Joint.
         limb.joint = (RevoluteJoint) worldComp.world.createJoint(PLAYER_LIMB_JOINT);
-
         playerComp.limbs.add(limb);
     }
 

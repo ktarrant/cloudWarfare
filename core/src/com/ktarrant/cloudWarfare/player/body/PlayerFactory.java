@@ -19,7 +19,7 @@ public class PlayerFactory {
     // ---------------------------------------------------------------------------------------------
     // Constants for controlling the factory
     // ---------------------------------------------------------------------------------------------
-    public static final float PLAYER_TORSO_RADIUS = 0.6f;
+    public static final float PLAYER_TORSO_RADIUS = 1.0f;
     public static final Vector2 DEFAULT_START_POS =
             new Vector2(0.0f, WorldFactory.PLATFORM_POS_Y + 20.0f);
     public static final float DEFAULT_MAX_STAMINA = 1.0f;
